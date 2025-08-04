@@ -1,0 +1,95 @@
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ .Chart.Name | quote }}
+  namespace: {{ .Values.global.licensePlate }}{{ .Values.global.sectionTag }}
+  labels:
+{{ include "php.labels.standard" . | indent 4 }}
+    app.openshift.io/runtime: {{ .Values.labels.runtime }}
+    app.openshift.io/runtime-version: {{ .Values.labels.version | quote }}
+  annotations:
+    image.openshift.io/triggers: |-
+      [
+        {
+          "from": {
+            "kind": "ImageStreamTag",
+            "namespace": "{{ .Values.global.licensePlate }}-tools",
+            "name": "{{ .Chart.Name }}:{{ .Values.global.image.imageStreamTag }}"
+          },
+          "fieldPath": "spec.template.spec.containers[0].image"
+        }
+      ]
+    vault.hashicorp.com/agent-inject: 'true'
+    vault.hashicorp.com/agent-init-first: 'true'
+    vault.hashicorp.com/agent-pre-populate-only: 'true'
+    vault.hashicorp.com/namespace: {{ .Values.vault.namespace }}
+    vault.hashicorp.com/role: {{ .Values.vault.engine }}
+    vault.hashicorp.com/auth-path: {{ .Values.vault.authPath }}
+    vault.hashicorp.com/agent-inject-secret-postgres: {{ .Values.vault.engine }}{{ .Values.vault.path }}/postgres
+    vault.hashicorp.com/agent-inject-template-postgres: |
+      {{ `{{- with secret ` }}"{{ .Values.vault.engine }}{{ .Values.vault.path }}/postgres"{{ ` }}
+      {{- range $k, $v := .Data.data }}
+      export {{ $k }}='{{ $v }}'
+      {{- end }}
+      {{- end }}` }}
+spec:
+  replicas: {{ .Values.global.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name | quote }}
+  template:
+    metadata:
+      labels: 
+        app: {{ .Chart.Name | quote }}
+    spec:
+      volumes:
+        - name: {{ .Chart.Name | quote }}
+          persistentVolumeClaim:
+            claimName: {{ .Chart.Name | quote }}
+      containers:
+        - name: {{ .Chart.Name | quote }}
+          image: "{{ .Values.global.image.repository }}{{ .Values.global.licensePlate }}-tools/{{ .Chart.Name }}:{{ .Values.global.image.imageStreamTag }}"
+          ports:
+            - name: {{ .Values.ports.name }}
+              containerPort: {{ .Values.ports.containerPort }}
+              protocol: {{ .Values.ports.protocol }}
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
+          volumeMounts:
+            - mountPath: {{ .Values.volumeMounts.mountPath | quote }}
+              name: {{ .Chart.Name | quote }}
+              subPath: {{ .Values.volumeMounts.subPath | quote }}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+          readinessProbe: 
+            tcpSocket:
+              port: {{ .Values.ports.containerPort }}
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          livenessProbe: 
+            tcpSocket:
+              port: {{ .Values.ports.containerPort }}
+            initialDelaySeconds: 15
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 3
+  progressDeadlineSeconds: 600
+...

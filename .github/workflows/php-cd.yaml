@@ -1,0 +1,39 @@
+name: PHP Docker CD
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "docker/php/Dockerfile"
+jobs:
+  php-build-push-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Build PHP Docker image
+        run: |
+          docker buildx build --file docker/php/Dockerfile --tag limesurvey-openshift/php:latest --load .
+      - name: Login to OpenShift Container Registry
+        env:
+          OPENSHIFT_SA_USER: ${{ secrets.OPENSHIFT_SA_USER }}
+          OPENSHIFT_SA_TOKEN: ${{ secrets.OPENSHIFT_SA_TOKEN }}
+          OPENSHIFT_IMAGE_REGISTRY: ${{ secrets.OPENSHIFT_IMAGE_REGISTRY }}
+        run: |
+          echo $OPENSHIFT_SA_TOKEN | docker login $OPENSHIFT_IMAGE_REGISTRY -u $OPENSHIFT_SA_USER --password-stdin
+      - name: Push PHP image to OpenShift Registry
+        env:
+          OPENSHIFT_IMAGE_REGISTRY: ${{ secrets.OPENSHIFT_IMAGE_REGISTRY }}
+          OPENSHIFT_REPOSITORY: ${{ secrets.OPENSHIFT_REPOSITORY }}
+        run: |
+          docker tag limesurvey-openshift/php:latest $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/php:latest
+          docker push $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/php:latest
+      - name: Trigger PHP deployment rollout
+        env:
+          OPENSHIFT_SERVER: ${{ secrets.OPENSHIFT_SERVER }}
+          OPENSHIFT_SA_TOKEN: ${{ secrets.OPENSHIFT_SA_TOKEN }}
+        run: |
+          oc login $OPENSHIFT_SERVER --token=$OPENSHIFT_SA_TOKEN --insecure-skip-tls-verify=true
+          oc rollout restart deployment/php

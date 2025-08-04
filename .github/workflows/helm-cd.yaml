@@ -1,0 +1,45 @@
+name: Helm Chart CD
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "helm/**"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment to deploy"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - test
+          - prod
+jobs:
+  helm-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+      - name: Login to OpenShift
+        env:
+          OPENSHIFT_SERVER: ${{ secrets.OPENSHIFT_SERVER }}
+          OPENSHIFT_SA_TOKEN: ${{ secrets.OPENSHIFT_SA_TOKEN }}
+        run: |
+          oc login $OPENSHIFT_SERVER --token=$OPENSHIFT_SA_TOKEN --insecure-skip-tls-verify=true
+      - name: Set OpenShift project
+        env:
+          OPENSHIFT_PROJECT_LICENSE_PLATE: cd77be
+        run: |
+          oc project $OPENSHIFT_PROJECT_LICENSE_PLATE-${{ github.event.inputs.environment }}
+      - name: Deploy Helm chart
+        run: |
+          helm upgrade --install limesurvey ./helm \
+            --values ./helm/values.yaml \
+            --values ./helm/values-${{ github.event.inputs.environment }}.yaml
+      - name: Verify Deployment
+        run: |
+          oc rollout status deployment/limesurvey

@@ -1,0 +1,19 @@
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: {{ .Chart.Name | quote }}
+  namespace: {{ .Values.global.licensePlate }}{{ .Values.global.sectionTag }}
+spec:
+  host: {{ .Values.global.host }}
+  to:
+    kind: Service
+    name: {{ .Chart.Name | quote }}
+    weight: 100
+  port:
+    targetPort: {{ .Values.ports.name }}
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
+...

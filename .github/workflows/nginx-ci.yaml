@@ -1,0 +1,22 @@
+name: Nginx Docker CI
+on:
+  push:
+    paths:
+      - "docker/nginx/Dockerfile"
+  pull_request:
+    paths:
+      - "docker/nginx/Dockerfile"
+jobs:
+  nginx-lint-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Lint Nginx Dockerfile
+        run: |
+          docker buildx bake --print || true
+      - name: Build Nginx Docker image
+        run: |
+          docker buildx build --file docker/nginx/Dockerfile --tag limesurvey-openshift/nginx:ci --load .

@@ -1,0 +1,34 @@
+---
+labels:
+  version: latest
+  runtime: nginx
+service:
+  type: ClusterIP
+  port: 8080
+ports:
+  name: 8080-tcp
+  containerPort: 8080
+  protocol: TCP
+resources:
+  limits:
+    cpu: 200m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+volumeMounts:
+  mountPath: /var/www/html
+  subPath: html
+
+global:
+  licensePlate: cd77be
+  sectionTag: -dev
+  replicaCount: 1
+  image:
+    repository: image-registry.openshift-image-registry.svc:5000/
+    imageStreamTag: latest
+  host: "desso-limesurvey-dev.apps.silver.devops.gov.bc.ca"
+
+vault:
+  namespace: platform-services
+  authPath: 'auth/k8s-silver'

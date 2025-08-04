@@ -1,0 +1,36 @@
+name: Validate Dockerfile and Helm Chart
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "docker/nginx/Dockerfile"
+      - "docker/php/Dockerfile"
+      - "helm/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "docker/nginx/Dockerfile"
+      - "docker/php/Dockerfile"
+      - "helm/**"
+env:
+  project-license-plate: cd77be
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Validate Dockerfile
+        run: |
+          docker buildx create --use
+          docker buildx inspect --bootstrap
+          docker buildx build --file docker/nginx/Dockerfile --tag limesurvey-openshift/nginx:latest --load .
+          docker buildx build --file docker/php/Dockerfile --tag limesurvey-openshift/php:latest --load .
+      - name: Validate Helm Chart
+        run: |
+          helm lint helm
+          helm template helm --values helm/values.yaml --output-dir helm/templates

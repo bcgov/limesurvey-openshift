@@ -1,0 +1,22 @@
+name: PHP Docker CI
+on:
+  push:
+    paths:
+      - "docker/php/Dockerfile"
+  pull_request:
+    paths:
+      - "docker/php/Dockerfile"
+jobs:
+  php-lint-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Lint PHP Dockerfile
+        run: |
+          docker buildx bake --print || true
+      - name: Build PHP Docker image
+        run: |
+          docker buildx build --file docker/php/Dockerfile --tag limesurvey-openshift/php:ci --load .
