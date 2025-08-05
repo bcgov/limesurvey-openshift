@@ -41,11 +41,13 @@ jobs:
           OPENSHIFT_PROJECT_LICENSE_PLATE: cd77be
         run: |
           oc project $OPENSHIFT_PROJECT_LICENSE_PLATE-${{ github.event.inputs.environment }}
-      - name: Update Helm dependencies
+      - name: Add Helm repository
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+      - name: Update & Build Helm dependencies
         run: |
           helm dependency update ./helm
-      - name: Build Helm dependencies
-        run: |
           helm dependency build ./helm
       - name: Deploy Helm chart
         run: |
