@@ -29,6 +29,6 @@ global:
     imageStreamTag: latest
   host: "desso-limesurvey-dev.apps.silver.devops.gov.bc.ca"
 
-vault:
-  namespace: platform-services
-  authPath: 'auth/k8s-silver'
+  vault:
+    namespace: platform-services
+    authPath: "auth/k8s-silver"

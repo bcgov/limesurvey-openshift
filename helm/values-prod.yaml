@@ -4,6 +4,6 @@ global:
   sectionTag: -prod
   host: "desso-limesurvey.apps.silver.devops.gov.bc.ca"
 
-vault:
-  engine: cd77be-prod
-  path: '' # No specific path for production, use root
+  vault:
+    engine: cd77be-prod
+    path: "" # No specific path for production, use root

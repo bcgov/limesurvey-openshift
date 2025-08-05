@@ -4,6 +4,6 @@ global:
   sectionTag: -dev
   host: "desso-limesurvey-dev.apps.silver.devops.gov.bc.ca"
 
-vault:
-  engine: cd77be-nonprod
-  path: '/dev'
+  vault:
+    engine: cd77be-nonprod
+    path: "/dev"

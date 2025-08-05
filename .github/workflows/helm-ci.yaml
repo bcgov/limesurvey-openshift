@@ -14,8 +14,6 @@ on:
       - "docker/nginx/Dockerfile"
       - "docker/php/Dockerfile"
       - "helm/**"
-env:
-  project-license-plate: cd77be
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -33,4 +31,4 @@ jobs:
       - name: Validate Helm Chart
         run: |
           helm lint helm
-          helm template helm --values helm/values.yaml --output-dir helm/templates
+          helm template helm --values helm/values.yaml --values helm/values-dev.yaml --output-dir helm/templates
