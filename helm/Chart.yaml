@@ -22,4 +22,4 @@ dependencies:
     repository: "file://charts/php"
   - name: postgresql
     version: "~0.0.1"
-    repository: "bitnami"
+    repository: "@bitnami"
