@@ -28,8 +28,8 @@ jobs:
         run: |
           docker buildx create --use
           docker buildx inspect --bootstrap
-          docker buildx build --file docker/nginx/Dockerfile --tag limesurvey-openshift/nginx:latest --load .
-          docker buildx build --file docker/php/Dockerfile --tag limesurvey-openshift/php:latest --load .
+          docker buildx build --file docker/nginx/Dockerfile --tag limesurvey-openshift/nginx:latest --load ./docker/nginx
+          docker buildx build --file docker/php/Dockerfile --tag limesurvey-openshift/php:latest --load ./docker/php
       - name: Validate Helm Chart
         run: |
           helm lint helm
