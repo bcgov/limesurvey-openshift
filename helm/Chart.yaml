@@ -20,6 +20,6 @@ dependencies:
   - name: limesurvey-php
     version: "~0.0.1"
     repository: "file://charts/php"
-  - name: limesurvey-postgres
+  - name: postgresql
     version: "~0.0.1"
-    repository: "bitnami/postgresql"
+    repository: "bitnami"
