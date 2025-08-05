@@ -41,6 +41,12 @@ jobs:
           OPENSHIFT_PROJECT_LICENSE_PLATE: cd77be
         run: |
           oc project $OPENSHIFT_PROJECT_LICENSE_PLATE-${{ github.event.inputs.environment }}
+      - name: Update Helm dependencies
+        run: |
+          helm dependency update ./helm
+      - name: Build Helm dependencies
+        run: |
+          helm dependency build ./helm
       - name: Deploy Helm chart
         run: |
           helm upgrade --install limesurvey ./helm \
