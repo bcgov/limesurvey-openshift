@@ -14,6 +14,7 @@ on:
       - "docker/nginx/Dockerfile"
       - "docker/php/Dockerfile"
       - "helm/**"
+  workflow_dispatch:
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -29,7 +30,8 @@ jobs:
           docker buildx build --file docker/nginx/Dockerfile --tag limesurvey-openshift/nginx:latest --load ./docker/nginx
           docker buildx build --file docker/php/Dockerfile --tag limesurvey-openshift/php:latest --load ./docker/php
       - name: Set up Helm
-        run: helm lint helm
+        run: |
+          helm lint helm
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo update
           helm dependency build helm
