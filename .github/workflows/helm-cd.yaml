@@ -19,7 +19,7 @@ on:
 
 jobs:
   helm-deploy:
-    environment: ${{ github.event.inputs.environment }}
+    environment: ${{ github.event.inputs.environment || 'dev' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -40,7 +40,7 @@ jobs:
         env:
           OPENSHIFT_PROJECT_LICENSE_PLATE: cd77be
         run: |
-          oc project $OPENSHIFT_PROJECT_LICENSE_PLATE-${{ github.event.inputs.environment }}
+          oc project $OPENSHIFT_PROJECT_LICENSE_PLATE-${{ github.event.inputs.environment || 'dev' }}
       - name: Add Helm repository
         run: |
           helm repo add bitnami https://charts.bitnami.com/bitnami
@@ -53,7 +53,7 @@ jobs:
         run: |
           helm upgrade --install limesurvey ./helm \
             --values ./helm/values.yaml \
-            --values ./helm/values-${{ github.event.inputs.environment }}.yaml
+            --values ./helm/values-${{ github.event.inputs.environment || 'dev' }}.yaml
       - name: Verify Deployment
         run: |
           oc rollout status deployment/limesurvey

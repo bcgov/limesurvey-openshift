@@ -8,7 +8,7 @@ on:
 jobs:
   php-build-push-deploy:
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment }}
+    environment: ${{ github.event.inputs.environment || 'dev' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -20,7 +20,7 @@ jobs:
           oc: "4.16"
       - name: Build PHP Docker image
         run: |
-          docker buildx build --file docker/php/Dockerfile --tag limesurvey-openshift/php:${{ github.event.inputs.environment }} --load .
+          docker buildx build --file docker/php/Dockerfile --tag limesurvey-openshift/php:${{ github.event.inputs.environment || 'dev' }} --load .
       - name: Login to OpenShift Container Registry
         env:
           OPENSHIFT_SA_USER: ${{ secrets.OPENSHIFT_SA_USER }}
