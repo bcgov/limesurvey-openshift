@@ -12,7 +12,7 @@ if [ ! -f "$LOCKFILE" ]; then
   # Unzip, overwriting existing files
   unzip -qo /tmp/limesurvey.zip -d "$LIMESURVEY_DIR"
   rm -f /tmp/limesurvey.zip
-  touch "$LOCKFILE"
+  touch $LOCKFILE
   echo "LimeSurvey downloaded and extracted."
 else
   echo "LimeSurvey already present, skipping download."
