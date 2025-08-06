@@ -11,7 +11,9 @@ if [ ! -f "$LOCKFILE" ]; then
   curl -L "https://download.limesurvey.org/latest-master/limesurvey${RELEASE}" -o /tmp/limesurvey.zip
   # Unzip, overwriting existing files
   unzip -o /tmp/limesurvey.zip -d "$LIMESURVEY_DIR"
+  echo "Unzip completed, cleaning up..."
   rm -f /tmp/limesurvey.zip
+  echo "Creating lock file to prevent re-download..."
   touch $LOCKFILE
   echo "LimeSurvey downloaded and extracted."
 else
