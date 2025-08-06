@@ -59,6 +59,7 @@ jobs:
             docker push $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/limesurvey-php:latest
           fi
       - name: Trigger PHP deployment rollout
+        continue-on-error: true # Ignore errors if deployment does not exist yet
         env:
           OPENSHIFT_SERVER: ${{ secrets.OPENSHIFT_SERVER }}
           OPENSHIFT_SA_TOKEN: ${{ secrets.OPENSHIFT_SA_TOKEN }}
