@@ -7,10 +7,9 @@ RELEASE="${LIMESURVEY_RELEASE:-6.15.5+250724.zip}"
 
 if [ ! -f "$LOCKFILE" ]; then
   echo "LimeSurvey not found, downloading..."
-  mkdir -p "$LIMESURVEY_DIR"
   curl -L "https://download.limesurvey.org/latest-master/limesurvey${RELEASE}" -o /tmp/limesurvey.zip
   # Unzip, overwriting existing files
-  unzip -o /tmp/limesurvey.zip -d "$LIMESURVEY_DIR"
+  unzip -qo /tmp/limesurvey.zip -d "$LIMESURVEY_DIR"
   echo "Unzip completed, cleaning up..."
   rm -f /tmp/limesurvey.zip
   echo "Creating lock file to prevent re-download..."
