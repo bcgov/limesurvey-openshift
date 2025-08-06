@@ -41,4 +41,4 @@ jobs:
           helm template helm --values helm/values.yaml --values helm/values-dev.yaml --output-dir helm/templates
       - name: Helm Dry-Run Install
         run: |
-          helm install --dry-run --debug limesurvey helm --values helm/values.yaml --values helm/values-dev.yaml
+          helm install --dry-run=client --debug limesurvey helm --values helm/values.yaml --values helm/values-dev.yaml
