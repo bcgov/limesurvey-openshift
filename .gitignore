@@ -58,3 +58,6 @@ go.work.sum
 
 # Recycle Bin used on file shares
 $RECYCLE.BIN/
+
+# Packed Helm charts
+helm/**/*.tgz
