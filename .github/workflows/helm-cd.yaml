@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "helm/**"
+      - ".github/workflows/helm-cd.yaml"
   workflow_dispatch:
     inputs:
       environment:

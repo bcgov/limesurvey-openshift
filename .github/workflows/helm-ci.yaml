@@ -8,6 +8,7 @@ on:
       - "docker/nginx/Dockerfile"
       - "docker/php/Dockerfile"
       - "helm/**"
+      - ".github/workflows/helm-ci.yaml"
   pull_request:
     branches:
       - main
@@ -15,6 +16,7 @@ on:
       - "docker/nginx/Dockerfile"
       - "docker/php/Dockerfile"
       - "helm/**"
+      - ".github/workflows/helm-ci.yaml"
   workflow_dispatch:
 jobs:
   validate:
@@ -22,14 +24,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Validate Dockerfile
-        run: |
-          docker buildx create --use
-          docker buildx inspect --bootstrap
-          docker buildx build --file docker/nginx/Dockerfile --tag limesurvey-openshift/nginx:latest --load ./docker/nginx
-          docker buildx build --file docker/php/Dockerfile --tag limesurvey-openshift/php:latest --load ./docker/php
       - name: Set up Helm
         run: |
           helm repo add bitnami https://charts.bitnami.com/bitnami

@@ -2,10 +2,10 @@ name: PHP Image - Lint and Validate
 on:
   push:
     paths:
-      - "docker/php/Dockerfile"
+      - "docker/php/**"
   pull_request:
     paths:
-      - "docker/php/Dockerfile"
+      - "docker/php/**"
 jobs:
   php-lint-build:
     runs-on: ubuntu-latest

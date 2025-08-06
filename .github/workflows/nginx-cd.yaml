@@ -4,7 +4,8 @@ on:
     branches:
       - main
     paths:
-      - "docker/nginx/Dockerfile"
+      - "docker/nginx/**"
+      - ".github/workflows/nginx-cd.yaml"
   workflow_dispatch:
     inputs:
       environment:

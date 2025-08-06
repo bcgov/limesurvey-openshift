@@ -2,10 +2,12 @@ name: Nginx Image - Lint and Validate
 on:
   push:
     paths:
-      - "docker/nginx/Dockerfile"
+      - "docker/nginx/**"
+      - ".github/workflows/nginx-ci.yaml"
   pull_request:
     paths:
-      - "docker/nginx/Dockerfile"
+      - "docker/nginx/**"
+      - ".github/workflows/nginx-ci.yaml"
 jobs:
   nginx-lint-build:
     runs-on: ubuntu-latest

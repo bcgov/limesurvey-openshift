@@ -4,7 +4,8 @@ on:
     branches:
       - main
     paths:
-      - "docker/php/Dockerfile"
+      - "docker/php/**"
+      - ".github/workflows/php-cd.yaml"
   workflow_dispatch:
     inputs:
       environment:
