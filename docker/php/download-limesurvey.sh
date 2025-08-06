@@ -3,7 +3,7 @@ set -e p
 
 LIMESURVEY_DIR="/var/www/html/limesurvey"
 LOCKFILE="$LIMESURVEY_DIR/.limesurvey_downloaded.lock"
-RELEASE="${LIMESURVEY_RELEASE:-6.8.1+241120.zip}"
+RELEASE="${LIMESURVEY_RELEASE:-6.15.5+250724.zip}"
 
 if [ ! -f "$LOCKFILE" ]; then
   echo "LimeSurvey not found, downloading..."
