@@ -5,16 +5,12 @@ on:
     branches:
       - main
     paths:
-      - "docker/nginx/Dockerfile"
-      - "docker/php/Dockerfile"
       - "helm/**"
       - ".github/workflows/helm-ci.yaml"
   pull_request:
     branches:
       - main
     paths:
-      - "docker/nginx/Dockerfile"
-      - "docker/php/Dockerfile"
       - "helm/**"
       - ".github/workflows/helm-ci.yaml"
   workflow_dispatch:
