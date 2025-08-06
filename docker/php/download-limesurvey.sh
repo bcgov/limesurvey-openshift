@@ -9,7 +9,8 @@ if [ ! -f "$LOCKFILE" ]; then
   echo "LimeSurvey not found, downloading..."
   mkdir -p "$LIMESURVEY_DIR"
   curl -L "https://download.limesurvey.org/latest-master/limesurvey${RELEASE}" -o /tmp/limesurvey.zip
-  unzip -q /tmp/limesurvey.zip -d /var/www/html
+  # Unzip, overwriting existing files
+  unzip -qo /tmp/limesurvey.zip -d "$LIMESURVEY_DIR"
   rm -f /tmp/limesurvey.zip
   touch "$LOCKFILE"
   echo "LimeSurvey downloaded and extracted."
