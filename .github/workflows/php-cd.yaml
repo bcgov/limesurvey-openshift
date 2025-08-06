@@ -44,10 +44,6 @@ jobs:
           OPENSHIFT_IMAGE_REGISTRY: ${{ secrets.OPENSHIFT_IMAGE_REGISTRY }}
         run: |
           echo $OPENSHIFT_SA_TOKEN | docker login $OPENSHIFT_IMAGE_REGISTRY -u $OPENSHIFT_SA_USER --password-stdin
-      - name: (Debug) Verify Registry Login
-        run: |
-          docker info
-          docker images
       - name: Push PHP image to OpenShift Registry
         env:
           OPENSHIFT_IMAGE_REGISTRY: ${{ secrets.OPENSHIFT_IMAGE_REGISTRY }}
