@@ -38,11 +38,9 @@ jobs:
           helm dependency update helm
       - name: Validate Helm Chart
         run: |
-          helm lint helm --values helm/values.yaml
-          helm lint helm --values helm/values-dev.yaml
-          helm lint helm --values helm/values-prod.yaml
-          helm lint helm --values helm/values-test.yaml
-          helm template helm --values helm/values.yaml --output-dir helm/templates/rendered-default
-          helm template helm --values helm/values-dev.yaml --output-dir helm/templates/rendered-dev
-          helm template helm --values helm/values-prod.yaml --output-dir helm/templates/rendered-prod
-          helm template helm --values helm/values-test.yaml --output-dir helm/templates/rendered-test
+          helm lint helm --values helm/values.yaml --values helm/values-dev.yaml
+          helm lint helm --values helm/values.yaml --values helm/values-test.yaml
+          helm lint helm --values helm/values.yaml --values helm/values-prod.yaml
+          helm template helm --values helm/values.yaml --values helm/values-dev.yaml --output-dir helm/templates/rendered-dev
+          helm template helm --values helm/values.yaml --values helm/values-prod.yaml --output-dir helm/templates/rendered-prod
+          helm template helm --values helm/values.yaml --values helm/values-test.yaml --output-dir helm/templates/rendered-test
