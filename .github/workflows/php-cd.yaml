@@ -51,12 +51,12 @@ jobs:
           OPENSHIFT_IMAGE_REGISTRY: ${{ secrets.OPENSHIFT_IMAGE_REGISTRY }}
           OPENSHIFT_REPOSITORY: ${{ secrets.OPENSHIFT_REPOSITORY }}
         run: |
-          docker tag limesurvey-openshift/php:$ENV_TAG $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/php:$ENV_TAG
-          docker push $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/php:$ENV_TAG
+          docker tag limesurvey-openshift/php:$ENV_TAG $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/limesurvey-php:$ENV_TAG
+          docker push $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/limesurvey-php:$ENV_TAG
           # Also push as "latest" if environment is dev
           if [ "$ENV_TAG" = "dev" ]; then
-            docker tag limesurvey-openshift/php:dev $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/php:latest
-            docker push $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/php:latest
+            docker tag limesurvey-openshift/php:dev $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/limesurvey-php:latest
+            docker push $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/limesurvey-php:latest
           fi
       - name: Trigger PHP deployment rollout
         env:

@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: "Deployment environment"
+        description: "Tag built image as:"
         required: true
         default: "dev"
         type: choice
@@ -52,12 +52,12 @@ jobs:
           OPENSHIFT_IMAGE_REGISTRY: ${{ secrets.OPENSHIFT_IMAGE_REGISTRY }}
           OPENSHIFT_REPOSITORY: ${{ secrets.OPENSHIFT_REPOSITORY }}
         run: |
-          docker tag limesurvey-openshift/nginx:$ENV_TAG $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/nginx:$ENV_TAG
-          docker push $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/nginx:$ENV_TAG
+          docker tag limesurvey-openshift/nginx:$ENV_TAG $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/limesurvey-nginx:$ENV_TAG
+          docker push $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/limesurvey-nginx:$ENV_TAG
           # Also push as "latest" if environment is dev
           if [ "$ENV_TAG" = "dev" ]; then
-            docker tag limesurvey-openshift/nginx:dev $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/nginx:latest
-            docker push $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/nginx:latest
+            docker tag limesurvey-openshift/nginx:dev $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/limesurvey-nginx:latest
+            docker push $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/limesurvey-nginx:latest
           fi
       - name: Trigger Nginx deployment rollout
         env:
