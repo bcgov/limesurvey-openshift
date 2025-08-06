@@ -34,4 +34,4 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-enable memcached
 
 # Download LimeSurvey if not present (for PVC, this will run on container start)
-ENTRYPOINT ["/usr/local/bin/download-limesurvey.sh"]
+ENTRYPOINT ["/usr/local/bin/limesurvey-init.sh"]

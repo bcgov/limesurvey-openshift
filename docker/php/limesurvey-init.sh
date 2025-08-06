@@ -17,3 +17,7 @@ if [ ! -f "$LOCKFILE" ]; then
 else
   echo "LimeSurvey already present, skipping download."
 fi
+
+# Start the PHP-FPM service
+echo "Starting PHP-FPM service..."
+exec docker-php-entrypoint php-fpm
