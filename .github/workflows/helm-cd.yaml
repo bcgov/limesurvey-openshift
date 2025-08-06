@@ -1,4 +1,5 @@
-name: Helm Chart CD
+name: Deploy Helm Chart to Openshift
+run-name: ${{ github.workflow }} - ${{ github.event.inputs.environment || 'dev' }}
 on:
   push:
     branches:

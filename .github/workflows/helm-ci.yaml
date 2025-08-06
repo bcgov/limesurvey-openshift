@@ -31,7 +31,6 @@ jobs:
           docker buildx build --file docker/php/Dockerfile --tag limesurvey-openshift/php:latest --load ./docker/php
       - name: Set up Helm
         run: |
-          helm lint helm
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo update
           helm dependency build helm

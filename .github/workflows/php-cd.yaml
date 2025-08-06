@@ -5,6 +5,17 @@ on:
       - main
     paths:
       - "docker/php/Dockerfile"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deployment environment"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - test
+          - prod
 jobs:
   php-build-push-deploy:
     runs-on: ubuntu-latest
@@ -18,9 +29,14 @@ jobs:
         uses: redhat-actions/openshift-tools-installer@v1.13.1
         with:
           oc: "4.16"
+      - name: (Debug) List files in workspace
+        run: |
+          pwd
+          ls -la .
+          ls -la docker/php
       - name: Build PHP Docker image
         run: |
-          docker buildx build --file docker/php/Dockerfile --tag limesurvey-openshift/php:${{ github.event.inputs.environment || 'dev' }} --load .
+          docker buildx build --file docker/php/Dockerfile --tag limesurvey-openshift/php:${{ github.event.inputs.environment || 'dev' }} --load docker/php
       - name: Login to OpenShift Container Registry
         env:
           OPENSHIFT_SA_USER: ${{ secrets.OPENSHIFT_SA_USER }}

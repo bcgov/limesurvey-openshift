@@ -5,6 +5,17 @@ on:
       - main
     paths:
       - "docker/nginx/Dockerfile"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deployment environment"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - test
+          - prod
 jobs:
   nginx-build-push-deploy:
     runs-on: ubuntu-latest
@@ -18,9 +29,14 @@ jobs:
         uses: redhat-actions/openshift-tools-installer@v1.13.1
         with:
           oc: "4.16"
+      - name: (Debug) List files in workspace
+        run: |
+          pwd
+          ls -la .
+          ls -la docker/nginx
       - name: Build Nginx Docker image
         run: |
-          docker buildx build --file docker/nginx/Dockerfile --tag limesurvey-openshift/nginx:${{ github.event.inputs.environment || 'dev' }} --load .
+          docker buildx build --file docker/nginx/Dockerfile --tag limesurvey-openshift/nginx:${{ github.event.inputs.environment || 'dev' }} --load docker/nginx
       - name: Login to OpenShift Container Registry
         env:
           OPENSHIFT_SA_USER: ${{ secrets.OPENSHIFT_SA_USER }}
