@@ -1,4 +1,5 @@
 name: Nginx Image - Lint and Validate
+run-name: Nginx Docker Lint/CI - ${{ github.event.head_commit.message || github.run_number }}
 on:
   push:
     paths:
