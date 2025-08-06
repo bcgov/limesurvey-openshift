@@ -72,7 +72,7 @@ spec:
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           imagePullPolicy: IfNotPresent
-          readinessProbe: 
+          readinessProbe:
             tcpSocket:
               port: {{ .Values.ports.containerPort }}
             timeoutSeconds: 1
@@ -82,7 +82,7 @@ spec:
           livenessProbe: 
             tcpSocket:
               port: {{ .Values.ports.containerPort }}
-            initialDelaySeconds: 15
+            initialDelaySeconds: 60
             timeoutSeconds: 1
             periodSeconds: 10
             successThreshold: 1
