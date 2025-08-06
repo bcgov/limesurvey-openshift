@@ -41,6 +41,6 @@ jobs:
           helm lint helm --values helm/values.yaml --values helm/values-dev.yaml
           helm lint helm --values helm/values.yaml --values helm/values-test.yaml
           helm lint helm --values helm/values.yaml --values helm/values-prod.yaml
-          helm template helm --values helm/values.yaml --values helm/values-dev.yaml --output-dir helm/templates/rendered-dev
-          helm template helm --values helm/values.yaml --values helm/values-prod.yaml --output-dir helm/templates/rendered-prod
-          helm template helm --values helm/values.yaml --values helm/values-test.yaml --output-dir helm/templates/rendered-test
+          helm template --debug helm --values helm/values.yaml --values helm/values-dev.yaml --output-dir helm/templates/rendered-dev
+          helm template --debug helm --values helm/values.yaml --values helm/values-prod.yaml --output-dir helm/templates/rendered-prod
+          helm template --debug helm --values helm/values.yaml --values helm/values-test.yaml --output-dir helm/templates/rendered-test
