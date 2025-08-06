@@ -19,4 +19,4 @@ jobs:
           docker buildx bake --print || true
       - name: Build Nginx Docker image
         run: |
-          docker buildx build --file docker/nginx/Dockerfile --tag limesurvey-openshift/nginx:ci --load .
+          docker buildx build --file docker/nginx/Dockerfile --tag limesurvey-openshift/nginx:ci --load docker/nginx

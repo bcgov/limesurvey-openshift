@@ -19,4 +19,4 @@ jobs:
           docker buildx bake --print || true
       - name: Build PHP Docker image
         run: |
-          docker buildx build --file docker/php/Dockerfile --tag limesurvey-openshift/php:ci --load .
+          docker buildx build --file docker/php/Dockerfile --tag limesurvey-openshift/php:ci --load docker/php
