@@ -4,9 +4,11 @@ on:
   push:
     paths:
       - "docker/php/**"
+      - ".github/workflows/php-ci.yaml"
   pull_request:
     paths:
       - "docker/php/**"
+      - ".github/workflows/php-ci.yaml"
 jobs:
   php-lint-build:
     runs-on: ubuntu-latest

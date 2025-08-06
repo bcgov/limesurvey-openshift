@@ -57,16 +57,3 @@ jobs:
             docker tag limesurvey-openshift/nginx:dev $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/limesurvey-nginx:latest
             docker push $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/limesurvey-nginx:latest
           fi
-      - name: Trigger Nginx deployment rollout
-        continue-on-error: true # Ignore errors if deployment does not exist yet
-        env:
-          OPENSHIFT_SERVER: ${{ secrets.OPENSHIFT_SERVER }}
-          OPENSHIFT_SA_TOKEN: ${{ secrets.OPENSHIFT_SA_TOKEN }}
-        run: |
-          for i in {1..5}; do
-            # Server sometimes doen't respond immediately, retry a few times
-            oc login --server=$OPENSHIFT_SERVER --token=$OPENSHIFT_SA_TOKEN --insecure-skip-tls-verify=true && break
-            echo "Login failed, retrying in 5 seconds... ($i/5)"
-            sleep 5
-          done
-          oc rollout restart deployment/limesurvey-nginx
