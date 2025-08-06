@@ -31,6 +31,7 @@ jobs:
         uses: redhat-actions/openshift-tools-installer@v1.13.1
         with:
           oc: "4.16"
+          skip_cache: true
       - name: Build PHP Docker image
         run: |
           docker buildx build --file docker/php/Dockerfile --tag limesurvey-openshift/php:$ENV_TAG --load docker/php
@@ -41,6 +42,10 @@ jobs:
           OPENSHIFT_IMAGE_REGISTRY: ${{ secrets.OPENSHIFT_IMAGE_REGISTRY }}
         run: |
           echo $OPENSHIFT_SA_TOKEN | docker login $OPENSHIFT_IMAGE_REGISTRY -u $OPENSHIFT_SA_USER --password-stdin
+      - name: (Debug) Verify Registry Login
+        run: |
+          docker info
+          docker images
       - name: Push PHP image to OpenShift Registry
         env:
           OPENSHIFT_IMAGE_REGISTRY: ${{ secrets.OPENSHIFT_IMAGE_REGISTRY }}

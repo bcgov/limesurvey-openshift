@@ -31,6 +31,7 @@ jobs:
         uses: redhat-actions/openshift-tools-installer@v1.13.1
         with:
           oc: "4.16"
+          skip_cache: true
       - name: Login to OpenShift
         env:
           OPENSHIFT_SERVER: ${{ secrets.OPENSHIFT_SERVER }}
