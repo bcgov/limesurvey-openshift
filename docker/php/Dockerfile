@@ -1,8 +1,8 @@
 FROM php:fpm
 
 # Copy the LimeSurvey download script into the image
-COPY download-limesurvey.sh /usr/local/bin/download-limesurvey.sh
-RUN chmod +x /usr/local/bin/download-limesurvey.sh
+COPY limesurvey-init.sh /usr/local/bin/limesurvey-init.sh
+RUN chmod +x /usr/local/bin/limesurvey-init.sh
 
 # Copy the php.ini configuration file
 COPY php.ini /usr/local/etc/php
