@@ -9,7 +9,7 @@ if [ ! -f "$LOCKFILE" ]; then
   echo "LimeSurvey not found, downloading..."
   curl -L "https://download.limesurvey.org/latest-master/limesurvey${RELEASE}" -o /tmp/limesurvey.zip
   echo "Download completed, extracting... (this may take a moment)"
-  unzip -o /tmp/limesurvey.zip -d "$LIMESURVEY_DIR" | pv -l -s $(unzip -l /tmp/limesurvey.zip | wc -l) > /dev/null
+  unzip -o /tmp/limesurvey.zip -d "$LIMESURVEY_DIR" | pv -l -s $(unzip -l /tmp/limesurvey.zip | wc -l)
   echo "Unzip completed, cleaning up..."
   rm -f /tmp/limesurvey.zip
   echo "Creating lock file to prevent re-download..."
