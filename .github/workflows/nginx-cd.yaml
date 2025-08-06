@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: "Tag built image as:"
+        description: "Tag the built image as:"
         required: true
         default: "dev"
         type: choice
