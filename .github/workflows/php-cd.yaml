@@ -1,4 +1,4 @@
-name: PHP Docker CD
+name: PHP Image - Build, Push, and Rollout
 on:
   push:
     branches:
@@ -20,6 +20,8 @@ jobs:
   php-build-push-deploy:
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.environment || 'dev' }}
+    env:
+      ENV_TAG: ${{ github.event.inputs.environment || 'dev' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -29,14 +31,9 @@ jobs:
         uses: redhat-actions/openshift-tools-installer@v1.13.1
         with:
           oc: "4.16"
-      - name: (Debug) List files in workspace
-        run: |
-          pwd
-          ls -la .
-          ls -la docker/php
       - name: Build PHP Docker image
         run: |
-          docker buildx build --file docker/php/Dockerfile --tag limesurvey-openshift/php:${{ github.event.inputs.environment || 'dev' }} --load docker/php
+          docker buildx build --file docker/php/Dockerfile --tag limesurvey-openshift/php:$ENV_TAG --load docker/php
       - name: Login to OpenShift Container Registry
         env:
           OPENSHIFT_SA_USER: ${{ secrets.OPENSHIFT_SA_USER }}
@@ -49,8 +46,13 @@ jobs:
           OPENSHIFT_IMAGE_REGISTRY: ${{ secrets.OPENSHIFT_IMAGE_REGISTRY }}
           OPENSHIFT_REPOSITORY: ${{ secrets.OPENSHIFT_REPOSITORY }}
         run: |
-          docker tag limesurvey-openshift/php:latest $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/php:latest
-          docker push $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/php:latest
+          docker tag limesurvey-openshift/php:$ENV_TAG $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/php:$ENV_TAG
+          docker push $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/php:$ENV_TAG
+          # Also push as "latest" if environment is dev
+          if [ "$ENV_TAG" = "dev" ]; then
+            docker tag limesurvey-openshift/php:dev $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/php:latest
+            docker push $OPENSHIFT_IMAGE_REGISTRY/$OPENSHIFT_REPOSITORY/php:latest
+          fi
       - name: Trigger PHP deployment rollout
         env:
           OPENSHIFT_SERVER: ${{ secrets.OPENSHIFT_SERVER }}

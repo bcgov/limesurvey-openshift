@@ -1,4 +1,4 @@
-name: Nginx Docker CI
+name: Nginx Image - Lint and Validate
 on:
   push:
     paths:

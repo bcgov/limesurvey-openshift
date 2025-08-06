@@ -1,4 +1,5 @@
-name: Validate Dockerfile and Helm Chart
+name: Helm - Validate and Render Templates
+run-name: ${{ github.workflow }}
 on:
   push:
     branches:

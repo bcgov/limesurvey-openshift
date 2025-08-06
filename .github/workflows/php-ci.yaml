@@ -1,4 +1,4 @@
-name: PHP Docker CI
+name: PHP Image - Lint and Validate
 on:
   push:
     paths:
