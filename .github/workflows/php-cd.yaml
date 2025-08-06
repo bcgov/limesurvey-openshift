@@ -64,4 +64,4 @@ jobs:
           OPENSHIFT_SA_TOKEN: ${{ secrets.OPENSHIFT_SA_TOKEN }}
         run: |
           oc login --server=$OPENSHIFT_SERVER --token=$OPENSHIFT_SA_TOKEN --insecure-skip-tls-verify=true
-          oc rollout restart deployment/php
+          oc rollout restart deployment/limesurvey-php
