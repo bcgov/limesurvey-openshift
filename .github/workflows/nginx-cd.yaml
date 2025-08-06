@@ -67,5 +67,10 @@ jobs:
           OPENSHIFT_SERVER: ${{ secrets.OPENSHIFT_SERVER }}
           OPENSHIFT_SA_TOKEN: ${{ secrets.OPENSHIFT_SA_TOKEN }}
         run: |
-          oc login --server=$OPENSHIFT_SERVER --token=$OPENSHIFT_SA_TOKEN --insecure-skip-tls-verify=true
+          for i in {1..5}; do
+            # Server sometimes doen't respond immediately, retry a few times
+            oc login --server=$OPENSHIFT_SERVER --token=$OPENSHIFT_SA_TOKEN --insecure-skip-tls-verify=true && break
+            echo "Login failed, retrying in 5 seconds... ($i/5)"
+            sleep 5
+          done
           oc rollout restart deployment/limesurvey-nginx

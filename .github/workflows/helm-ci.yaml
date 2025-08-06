@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Set up Helm
+      - name: Update & Build Helm dependencies
         run: |
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo update
