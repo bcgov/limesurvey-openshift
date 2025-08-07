@@ -7,6 +7,8 @@ RELEASE="${LIMESURVEY_RELEASE:-6.15.5+250724.zip}"
 
 if [ ! -f "$LOCKFILE" ]; then
   echo "LimeSurvey not found, downloading..."
+  # remove any existing LimeSurvey directory to ensure a clean download
+  rm -rf $EXTRACT_DIR/limesurvey
   curl -L "https://download.limesurvey.org/latest-master/limesurvey${RELEASE}" -o /tmp/limesurvey.zip
   echo "Download completed, extracting... (this may take a moment)"
   unzip -o /tmp/limesurvey.zip -d "$EXTRACT_DIR" | pv -l -s $(unzip -l /tmp/limesurvey.zip | wc -l)
