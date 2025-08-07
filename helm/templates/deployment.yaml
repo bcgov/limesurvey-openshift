@@ -53,10 +53,10 @@ spec:
               cpu: {{ .Values.resources.limits.cpu }}
               memory: {{ .Values.resources.limits.memory }}
           volumeMounts:
-            - mountPath: {{ .Values.volumeMounts.mountPath | quote }}
+            - mountPath: {{ .Values.global.volumeMounts.mountPath | quote }}
               name: {{ .Values.global.volumeMounts.name }}
-              {{- if .Values.volumeMounts.subPath }}
-              subPath: {{ .Values.volumeMounts.subPath | quote }}
+              {{- if .Values.global.volumeMounts.subPath }}
+              subPath: {{ .Values.global.volumeMounts.subPath | quote }}
               {{- end }}
             - mountPath: "/etc/nginx/conf.d"
               name: config-limesurvey-nginx
