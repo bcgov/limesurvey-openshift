@@ -13,7 +13,6 @@ RUN apt-get update && apt-get install -y \
     /var/cache/nginx/uwsgi_temp
 
 # Copy the NGINX configuration files
-COPY default.conf /etc/nginx/conf.d
 COPY nginx.pid /var/log/nginx
 COPY nginx.conf /etc/nginx
 
