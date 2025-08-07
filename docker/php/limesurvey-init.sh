@@ -11,7 +11,7 @@ if [ ! -f "$LOCKFILE" ]; then
   rm -rf $EXTRACT_DIR/limesurvey
   curl -L "https://download.limesurvey.org/latest-master/limesurvey${RELEASE}" -o /tmp/limesurvey.zip
   echo "Download completed, extracting... (this may take a moment)"
-  unzip -o /tmp/limesurvey.zip -d "$EXTRACT_DIR" | pv -l -s $(unzip -l /tmp/limesurvey.zip | wc -l) > /dev/null
+  unzip -o /tmp/limesurvey.zip -d "$EXTRACT_DIR" | pv -lf -s $(unzip -l /tmp/limesurvey.zip | wc -l) > /dev/null
   echo "Unzip completed, cleaning up..."
   rm -f /tmp/limesurvey.zip
   echo "Creating lock file to prevent re-download..."

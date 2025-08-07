@@ -52,7 +52,7 @@ spec:
       initContainers:
         - name: limesurvey-init
           image: "{{ .Values.global.image.repository }}{{ .Values.global.licensePlate }}-tools/{{ .Chart.Name }}:{{ .Values.global.image.imageStreamTag }}"
-          command: ["/bin/bash", "/limesurvey-init.sh"]
+          command: ["/bin/bash", "limesurvey-init.sh"]
           volumeMounts:
             - mountPath: {{ .Values.volumeMounts.mountPath | quote }}
               name: {{ .Chart.Name | quote }}
