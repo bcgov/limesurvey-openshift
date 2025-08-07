@@ -32,9 +32,9 @@ spec:
         app: {{ .Chart.Name | quote }}
     spec:
       volumes:
-        - name: limesurvey-data
+        - name: {{ .Values.global.volumeMounts.name }}
           persistentVolumeClaim:
-            claimName: limesurvey-data
+            claimName: {{ .Values.global.volumeMounts.name }}
         - name: config-limesurvey-nginx
           configMap:
             name: config-limesurvey-nginx
@@ -53,8 +53,11 @@ spec:
               cpu: {{ .Values.resources.limits.cpu }}
               memory: {{ .Values.resources.limits.memory }}
           volumeMounts:
-            - mountPath: /var/www/html/limesurvey
-              name: limesurvey-data
+            - mountPath: {{ .Values.volumeMounts.mountPath | quote }}
+              name: {{ .Values.global.volumeMounts.name }}
+              {{- if .Values.volumeMounts.subPath }}
+              subPath: {{ .Values.volumeMounts.subPath | quote }}
+              {{- end }}
             - mountPath: "/etc/nginx/conf.d"
               name: config-limesurvey-nginx
               readOnly: true

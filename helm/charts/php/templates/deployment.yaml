@@ -44,9 +44,9 @@ spec:
         app: {{ .Chart.Name | quote }}
     spec:
       volumes:
-        - name: limesurvey-data
+        - name: {{ .Values.global.volumeMounts.name }}
           persistentVolumeClaim:
-            claimName: limesurvey-data
+            claimName: {{ .Values.global.volumeMounts.name }}
         - name: tmp
           emptyDir: {}
       initContainers:
@@ -55,8 +55,10 @@ spec:
           command: ["/bin/bash", "limesurvey-init.sh"]
           volumeMounts:
             - mountPath: {{ .Values.volumeMounts.mountPath | quote }}
-              name: limesurvey-data
+              name: {{ .Values.global.volumeMounts.name }}
+              {{- if .Values.volumeMounts.subPath }}
               subPath: {{ .Values.volumeMounts.subPath | quote }}
+              {{- end }}
             - mountPath: /tmp
               name: tmp
           resources:
@@ -86,7 +88,7 @@ spec:
               memory: {{ .Values.resources.limits.memory }}
           volumeMounts:
             - mountPath: {{ .Values.volumeMounts.mountPath | quote }}
-              name: limesurvey-data
+              name: {{ .Values.global.volumeMounts.name }}
               subPath: {{ .Values.volumeMounts.subPath | quote }}
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
