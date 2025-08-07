@@ -33,8 +33,8 @@ global:
     namespace: platform-services
     authPath: "auth/k8s-silver"
 
-postgresql:
-  enabled: true
-  postgresqlUsername: limesurvey
-  postgresqlPassword: limesurvey
-  postgresqlDatabase: limesurvey
+  postgresql:
+    auth:
+      username: limesurvey
+      password: limesurvey
+      database: limesurvey
