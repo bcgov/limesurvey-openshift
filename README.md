@@ -68,6 +68,12 @@ echo $NAME
 
 The Vault user ( `<licenseplate>-vault; `see [Vault](#vault--secret-management)) needs to be authorized to pull images. For security reasons, RBAC is not deployed by GitHub Actions. You may manually create a RoleBinding giving the Vault user access to the `system:image-puller` role. Make sure that the role is created in the same namespace as the ImageStream you are pushing to (probably `<licenseplate>-tools`), but refers to the service account in the correct namespace (e.g, `<licenseplate>-dev`).
 
+```bash
+oc create rolebinding $NAMESPACE-vault -n $REGISTRY \
+  --clusterrole=system:image-puller \
+  --serviceaccount=$NAMESPACE:$NAME
+```
+
 ## Helm
 
 Adjust the necessary entries in the `helm/charts/values.yaml` file to target the correct namespace and use the desired host name.
