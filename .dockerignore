@@ -1,0 +1,8 @@
+compose.yaml
+docker-compose.yaml
+.git
+.gitmodules
+.cache
+*.md
+**/*.class
+*.iso

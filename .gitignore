@@ -1,0 +1,63 @@
+# Applications
+*.app
+*.cab
+*.dll
+*.dylib
+*.env
+*.exe
+*.lnk
+*.msi
+*.msm
+*.msp
+*.out
+*.so
+*.test
+*.war
+
+# Compiled Java class files
+*.class
+
+# Folders
+defaults/
+test/
+
+# Generated files
+.DS_Store
+._.DS_Store
+.idea
+.Trashes
+.vscode
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+*.gem
+*.lock
+
+# Go workspace files
+go.work
+go.work.sum
+
+# Large media files
+*.avi
+*.flv
+*.mov
+*.mp4
+*.tiff
+*.wmv
+
+# Log files
+*.log
+
+# Package files
+*.ear
+*.jar
+*.rar
+*.tar.gz
+*.war
+*.zip
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Packed Helm charts
+helm/**/*.tgz
