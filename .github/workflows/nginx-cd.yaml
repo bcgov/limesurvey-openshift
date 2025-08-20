@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - "docker/nginx/**"
-      - ".github/workflows/nginx-cd.yaml"
   workflow_dispatch:
     inputs:
       environment:

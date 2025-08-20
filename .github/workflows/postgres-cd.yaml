@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - "docker/postgres/**"
-      - ".github/workflows/postgres-cd.yaml"
   workflow_dispatch:
     inputs:
       environment:

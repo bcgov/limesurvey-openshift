@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - "docker/php/**"
-      - ".github/workflows/php-cd.yaml"
   workflow_dispatch:
     inputs:
       environment:
