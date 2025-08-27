@@ -52,9 +52,16 @@ oc create rolebinding $NAME-$TAG-push -n $REGISTRY \
 oc create rolebinding $NAME-helm -n $NAMESPACE \
   --clusterrole=edit \
   --serviceaccount=$NAMESPACE:$NAME
-# Create a Secret with a token for the service account
-oc create token $NAME -n $NAMESPACE | oc create secret \
-  generic -n $NAMESPACE $NAME-token --from-file=token=/dev/stdin
+# Create a Secret containing a token for the service account
+echo "kind: Secret
+apiVersion: v1
+type: kubernetes.io/service-account-token
+metadata:
+  name: $NAME-token
+  namespace: $NAMESPACE
+  annotations:
+    kubernetes.io/service-account.name: $NAME
+" | oc create -f -
 # Pass this token as OPENSHIFT_SA_TOKEN. Do not commit to git
 echo "Token:"
 oc get secret $NAME-token -n $NAMESPACE \
