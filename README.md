@@ -106,7 +106,7 @@ helm upgrade --install limesurvey . --values values-<environment>.yaml
 
 Note that `--values` is used to specify another file in addition to `values.yaml`. This will be the environment-specific file `values-dev.yaml`, `values-test.yaml`, or `values-prod.yaml`.
 
-If you notice that the deployment is not picking changes to subcharts (i.e, `limesurvey-php` and `limesurvey-postgresql`), you may need to run the following command to update the dependencies:
+If you notice that the deployment is not picking up on changes to subcharts (i.e, `limesurvey-php` and `limesurvey-postgresql`), you may need to run the following command to update the dependencies:
 
 ```bash
 helm dependency update
