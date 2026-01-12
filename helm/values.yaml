@@ -36,6 +36,7 @@ global:
   host: "deseng-limesurvey-dev.apps.silver.devops.gov.bc.ca"
 
   vault:
+    enabled: true
     namespace: platform-services
     authPath: "auth/k8s-silver"
     serviceAccount: cd77be-vault
