@@ -4,7 +4,7 @@ global:
   licensePlate: cd77be
   sectionTag: -dev
   image:
-    repository: ghcr.io/uhelm/limesurvey-openshift
+    repository: ghcr.io/bcgov/limesurvey-openshift
     tag: latest
   host: "limesurvey-dev.apps.silver.devops.gov.bc.ca"
   vault:
