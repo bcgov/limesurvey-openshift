@@ -1,3 +1,4 @@
+{{- if .Values.sysdigteam }}
 ---
 apiVersion: ops.gov.bc.ca/v1alpha1
 kind: SysdigTeam
@@ -19,3 +20,4 @@ spec:
       - name: steve.m.howard@gov.bc.ca
         role: ROLE_TEAM_EDIT
 ...
+{{- end }}

@@ -5,10 +5,10 @@ return array(
     'name' => 'LimeSurvey',
     'components' => array(
         'db' => array(
-          'connectionString' => 'sqlsrv:Server=' . getenv('DB_HOST') . ',' . getenv('DB_PORT') . ';Database=' . getenv('DB_NAME') . ';TrustServerCertificate=True',
+          'connectionString' => 'sqlsrv:Server=${DB_HOST},${DB_PORT};Database=${DB_NAME};TrustServerCertificate=True',
           'emulatePrepare' => true,
-          'username' => getenv('DB_USER'),
-          'password' => getenv('DB_PASSWORD'),
+          'username' => '${DB_USER}',
+          'password' => '${DB_PASSWORD}',
           'charset' => 'utf8',
           'tablePrefix' => '',
           'initSQLs' => array('SET DATEFORMAT ymd;', 'SET QUOTED_IDENTIFIER ON;')),

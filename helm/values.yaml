@@ -1,17 +1,17 @@
 ---
 global:
   app: limesurvey
-  licensePlate: da8021
+  licensePlate: cd77be
   sectionTag: -dev
   image:
-    repository: ghcr.io/uhelm/limesurvey-openshift
+    repository: ghcr.io/bcgov/limesurvey-openshift
     tag: latest
-  host: "limesurvey-dev.apps.clab.devops.gov.bc.ca"
+  host: "limesurvey-dev.apps.silver.devops.gov.bc.ca"
   vault:
     enabled: true
     namespace: platform-services
-    authPath: "auth/k8s-clab"
-    serviceAccount: da8021-vault
+    authPath: "auth/k8s-silver"
+    serviceAccount: cd77be-vault
 
 limesurvey-nginx:
   volumeMounts:
@@ -40,6 +40,7 @@ limesurvey-nginx:
       memory: 128Mi
 
 limesurvey-php:
+  sysdigteam: false
   pvcs:
     - name: limesurvey-data
       mountPath: /var/www/html/limesurvey/tmp/
@@ -98,7 +99,7 @@ limesurvey-memcached:
       memory: 64Mi
 
 limesurvey-mssql:
-  enabled: true
+  enabled: false
   replicaCount: 1
   image:
     repository: mcr.microsoft.com/mssql
