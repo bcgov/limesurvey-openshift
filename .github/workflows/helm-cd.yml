@@ -2,11 +2,6 @@ name: Deploy to OpenShift
 run-name: "Helm Deploy (${{ inputs.environment || github.event.inputs.environment || 'dev' }})"
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "helm/**"
   workflow_call:
     inputs:
       tag:
