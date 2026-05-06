@@ -129,4 +129,22 @@ limesurvey-mssql:
     storageClass: ""
     accessMode: ReadWriteOnce
     size: 10Gi
-    mountPath: /var/opt/mssql      
+    mountPath: /var/opt/mssql
+
+limesurvey-backup:
+  enabled: true
+  schedule: "0 2 * * *"
+  pvcName: limesurvey-upload
+  image:
+    repository: docker.io/restic/restic
+    tag: "0.17.3"
+  retention:
+    keepDaily: 7
+    keepWeekly: 4
+    keepMonthly: 3
+  resources:
+    limits:
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi

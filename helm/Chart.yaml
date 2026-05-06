@@ -30,3 +30,7 @@ dependencies:
     version: "~0.0.1"
     repository: "file://mssql"
     condition: limesurvey-mssql.enabled
+  - name: limesurvey-backup
+    version: "~0.0.1"
+    repository: "file://backup"
+    condition: limesurvey-backup.enabled
