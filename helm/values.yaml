@@ -40,6 +40,7 @@ limesurvey-nginx:
       memory: 128Mi
 
 limesurvey-php:
+  sysdigteam: false
   pvcs:
     - name: limesurvey-data
       mountPath: /var/www/html/limesurvey/tmp/
