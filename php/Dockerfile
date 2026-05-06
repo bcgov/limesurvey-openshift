@@ -84,7 +84,7 @@ RUN echo "LimeSurvey not found, downloading..." && \
     rm -f /tmp/limesurvey.zip && \
     echo "LimeSurvey downloaded and extracted."
 
-#RUN chmod 777 "$ROOT_DIR/limesurvey/application/config/"
+RUN chmod 777 "$ROOT_DIR/limesurvey/application/config/"
 
 WORKDIR /var/www/html/limesurvey
 COPY --from=plugin --exclude=.git /opt/AuthOAuth2 ./plugins/AuthOAuth2
