@@ -18,5 +18,5 @@ metadata:
   labels:
 {{ include "php.labels.standard" . | indent 4 }}
 data:
-  config.php: |
+  config.php.tmpl: |
 {{ .Files.Get "assets/config.php" | indent 4 }}

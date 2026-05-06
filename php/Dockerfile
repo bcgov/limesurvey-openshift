@@ -22,6 +22,7 @@ RUN apt-get update \
     # && ACCEPT_EULA=Y apt-get install -y mssql-tools18 \
     && apt-get install --no-install-recommends -y \
     curl \
+    gettext-base \
     gnupg2 \
     freetds-dev \
     libc-client-dev \
