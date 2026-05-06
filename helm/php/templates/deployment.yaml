@@ -32,6 +32,13 @@ spec:
           export {{ $k }}='{{ $v }}'
           {{- end }}
           {{- end }}` }}
+        vault.hashicorp.com/agent-inject-secret-limesurvey: {{ .Values.global.vault.engine }}{{ .Values.global.vault.path }}/limesurvey
+        vault.hashicorp.com/agent-inject-template-limesurvey: |
+          {{ `{{- with secret ` }}"{{ .Values.global.vault.engine }}{{ .Values.global.vault.path }}/limesurvey"{{ ` }}
+          {{- range $k, $v := .Data.data }}
+          export {{ $k }}='{{ $v }}'
+          {{- end }}
+          {{- end }}` }}
         {{- end }}
     spec:
       {{- $pvcs := .Values.pvcs }}
