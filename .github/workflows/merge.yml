@@ -1,5 +1,5 @@
 name: Deploy to Dev - PR Merge
-run-name: "PR Merge - Deploy to DEV (PR #${{ github.event.pull_request.number }})"
+run-name: "Deploy to DEV - PR Merge - ${{ github.event.head_commit.message }}"
 
 on:
   push:
