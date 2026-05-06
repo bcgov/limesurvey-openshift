@@ -6,7 +6,7 @@ RUN git clone https://github.com/SondagesPro/limesurvey-oauth2.git AuthOAuth2 \
     && composer install \
     && sed -i '/<version>6<\/version>/i <version>7</version>' config.xml
 
-FROM php:8.4-fpm-bookworm
+FROM php:8.4-fpm
 
 ENV ROOT_DIR="/var/www/html"
 ENV RELEASE="7.0.0-beta2+260415.zip"
@@ -25,7 +25,6 @@ RUN apt-get update \
     gettext-base \
     gnupg2 \
     freetds-dev \
-    libc-client-dev \
     libfreetype-dev \
     libicu-dev \
     libjpeg-dev \
@@ -38,7 +37,6 @@ RUN apt-get update \
     libzip-dev \
     memcached \
     odbcinst \
-    postgresql-client \
     pv \
     unixodbc-dev \
     unzip \
@@ -46,13 +44,12 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && pecl install memcached-3.4.0 \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd intl pdo_pgsql zip \
-    && pecl install imap pdo_sqlsrv \
-    && docker-php-ext-enable imap pdo_sqlsrv \
+    && docker-php-ext-install -j$(nproc) gd intl zip \
+    && pecl install pdo_sqlsrv \
+    && docker-php-ext-enable pdo_sqlsrv \
     && docker-php-ext-enable memcached \
     && apt-get remove --purge -y \
     freetds-dev \
-    libc-client-dev \
     libfreetype-dev \
     libicu-dev \
     libjpeg-dev \
@@ -67,7 +64,8 @@ RUN apt-get update \
     zlib1g-dev
 
 # Add debugging tools into builds if enabled
-RUN if [ ${DEBUG_BUILD} = true ]; then \
+ARG DEBUG_BUILD=false
+RUN if [[ ${DEBUG_BUILD} = true ]]; then \
         apt update && apt-get install --no-install-recommends -y jq vim procps iputils-ping less \
         && pecl install xdebug \
         && docker-php-ext-enable xdebug; \

@@ -1,4 +1,4 @@
-FROM nginx:1.29
+FROM nginx:1
 
 ENV ROOT_DIR="/var/www/html"
 ENV RELEASE="7.0.0-beta2+260415.zip"
