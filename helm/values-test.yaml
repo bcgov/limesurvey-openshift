@@ -2,7 +2,7 @@
 global:
   licensePlate: cd77be
   sectionTag: -test
-  host: "limesurvey-test.apps.clab.devops.gov.bc.ca"
+  host: "limesurvey-test.apps.silver.devops.gov.bc.ca"
   image:
     tag: test
 

@@ -6,7 +6,7 @@ global:
   image:
     repository: ghcr.io/uhelm/limesurvey-openshift
     tag: latest
-  host: "limesurvey-dev.apps.clab.devops.gov.bc.ca"
+  host: "limesurvey-dev.apps.silver.devops.gov.bc.ca"
   vault:
     enabled: true
     namespace: platform-services
@@ -99,7 +99,7 @@ limesurvey-memcached:
       memory: 64Mi
 
 limesurvey-mssql:
-  enabled: true
+  enabled: false
   replicaCount: 1
   image:
     repository: mcr.microsoft.com/mssql
