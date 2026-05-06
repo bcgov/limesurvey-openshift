@@ -1,11 +1,11 @@
 # Default values for limesurvey Helm chart (test environment)
 global:
-  licensePlate: da8021
+  licensePlate: cd77be
   sectionTag: -test
   host: "limesurvey-test.apps.clab.devops.gov.bc.ca"
   image:
     tag: test
 
   vault:
-    engine: da8021-nonprod
+    engine: cd77be-nonprod
     path: "/test"

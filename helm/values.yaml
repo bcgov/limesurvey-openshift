@@ -1,7 +1,7 @@
 ---
 global:
   app: limesurvey
-  licensePlate: da8021
+  licensePlate: cd77be
   sectionTag: -dev
   image:
     repository: ghcr.io/uhelm/limesurvey-openshift
@@ -10,8 +10,8 @@ global:
   vault:
     enabled: true
     namespace: platform-services
-    authPath: "auth/k8s-clab"
-    serviceAccount: da8021-vault
+    authPath: "auth/k8s-silver"
+    serviceAccount: cd77be-vault
 
 limesurvey-nginx:
   volumeMounts:

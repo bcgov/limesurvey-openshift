@@ -1,11 +1,11 @@
 # Default values for limesurvey Helm chart (prod environment)
 global:
-  licensePlate: da8021
+  licensePlate: cd77be
   sectionTag: -prod
   host: "limesurvey-prod.apps.clab.devops.gov.bc.ca"
   image:
     tag: prod
 
   vault:
-    engine: da8021-prod
+    engine: cd77be-prod
     path: "" # No specific path for production, use root
