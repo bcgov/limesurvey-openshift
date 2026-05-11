@@ -9,3 +9,6 @@ global:
   vault:
     engine: cd77be-prod
     path: "" # No specific path for production, use root
+
+limesurvey-nginx:
+  replicaCount: 3

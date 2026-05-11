@@ -57,13 +57,7 @@ spec:
               - key: config.php.tmpl
                 path: config.php.tmpl
         - name: config-rendered
-          emptyDir: {}
-        - name: config-limesurvey-php
-          configMap:
-            name: config-limesurvey-php   
-            items:
-              - key: php.ini
-                path: php.ini       
+          emptyDir: {}      
       {{- if .Values.global.vault.serviceAccount }}
       serviceAccountName: {{ .Values.global.vault.serviceAccount }}
       {{- end }}
@@ -73,10 +67,6 @@ spec:
           command: ["/bin/bash"]
           args: [ "-c", "source /vault/secrets/mssql && source /vault/secrets/limesurvey && envsubst < /etc/limesurvey/config.php.tmpl > /etc/limesurvey/rendered/config.php && limesurvey-init.sh"]
           volumeMounts:
-            - name: config-limesurvey-php
-              readOnly: true
-              mountPath: "/usr/local/etc/php/php.ini"
-              subPath: php.ini
             - name: config-limesurvey-application
               readOnly: true
               mountPath: "/etc/limesurvey/config.php.tmpl"
@@ -121,10 +111,6 @@ spec:
           command: ["/bin/bash"]
           args: [ "-c", "php-fpm"]
           volumeMounts:
-            - name: config-limesurvey-php
-              readOnly: true
-              mountPath: "/usr/local/etc/php/php.ini"
-              subPath: php.ini
             - name: config-rendered
               readOnly: true
               mountPath: "/var/www/html/limesurvey/application/config/config.php"

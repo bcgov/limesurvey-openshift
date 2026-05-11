@@ -1,0 +1,70 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Chart.Name | quote }}
+  namespace: {{ .Values.global.licensePlate }}{{ .Values.global.sectionTag }}
+  labels:
+{{ include "backup.labels.standard" . | indent 4 }}
+spec:
+  schedule: {{ .Values.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: {{ .Chart.Name | quote }}
+          annotations:
+            {{- if .Values.global.vault.enabled }}
+            vault.hashicorp.com/agent-inject: 'true'
+            vault.hashicorp.com/agent-init-first: 'true'
+            vault.hashicorp.com/agent-pre-populate-only: 'true'
+            vault.hashicorp.com/namespace: {{ .Values.global.vault.namespace }}
+            vault.hashicorp.com/role: {{ .Values.global.vault.engine }}
+            vault.hashicorp.com/auth-path: {{ .Values.global.vault.authPath }}
+            vault.hashicorp.com/agent-inject-secret-backup: {{ .Values.global.vault.engine }}{{ .Values.global.vault.path }}/backup
+            vault.hashicorp.com/agent-inject-template-backup: |
+              {{ `{{- with secret ` }}"{{ .Values.global.vault.engine }}{{ .Values.global.vault.path }}/backup"{{ ` }}
+              {{- range $k, $v := .Data.data }}
+              export {{ $k }}='{{ $v }}'
+              {{- end }}
+              {{- end }}` }}
+            {{- end }}
+        spec:
+          {{- if .Values.global.vault.serviceAccount }}
+          serviceAccountName: {{ .Values.global.vault.serviceAccount }}
+          {{- end }}
+          restartPolicy: OnFailure
+          volumes:
+            - name: upload
+              persistentVolumeClaim:
+                claimName: {{ .Values.pvcName }}
+          containers:
+            - name: {{ .Chart.Name | quote }}
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+              imagePullPolicy: IfNotPresent
+              command: ["/bin/sh"]
+              args:
+                - -c
+                - |
+                  source /vault/secrets/backup
+                  restic snapshots > /dev/null 2>&1 || restic init
+                  restic backup /data
+                  restic forget \
+                    --keep-daily {{ .Values.retention.keepDaily }} \
+                    --keep-weekly {{ .Values.retention.keepWeekly }} \
+                    --keep-monthly {{ .Values.retention.keepMonthly }} \
+                    --prune
+              volumeMounts:
+                - name: upload
+                  mountPath: /data
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: {{ .Values.resources.requests.cpu }}
+                  memory: {{ .Values.resources.requests.memory }}
+                limits:
+                  memory: {{ .Values.resources.limits.memory }}

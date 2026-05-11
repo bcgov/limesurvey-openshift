@@ -1,0 +1,7 @@
+---
+apiVersion: v2
+name: limesurvey-backup
+description: Restic backup CronJob for LimeSurvey PVC data
+type: application
+version: 0.0.1
+appVersion: "0.0.1"
