@@ -3,10 +3,7 @@ run-name: "Build (PR #${{ github.event.pull_request.number }})"
 
 on:
   pull_request:
-    paths:
-      - 'php/**'
-      - 'nginx/**'
-      - '.github/workflows/**'
+    types: [opened, synchronize, reopened]
 
 concurrency:
   # Cancel in progress for PR open and close, but not merge_group
