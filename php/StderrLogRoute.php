@@ -19,7 +19,8 @@ class StderrLogRoute extends CLogRoute
         foreach ($logs as $log) {
             [$message, $level, $category, $timestamp] = $log;
             $message = rtrim($message);
-            $entry = '[' . strtoupper($level) . '] [' . $category . '] ' . $message;
+            $date = date('Y-m-d H:i:s', (int)$timestamp);
+            $entry = '[' . $date . '] [' . strtoupper($level) . '] [' . $category . '] ' . $message;
             error_log($entry);
         }
     }
