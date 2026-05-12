@@ -61,3 +61,5 @@ $RECYCLE.BIN/
 
 # Packed Helm charts
 helm/**/*.tgz
+
+app/
