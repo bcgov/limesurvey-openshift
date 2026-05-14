@@ -15,7 +15,7 @@ jobs:
     name: PR Description Add
     if: github.event_name == 'pull_request'
     env:
-      DOMAIN: apps.clab.devops.gov.bc.ca
+      DOMAIN: apps.silver.devops.gov.bc.ca
       PREFIX: ${{ github.event.repository.name }}-${{ github.event.number }}
     runs-on: ubuntu-24.04
     permissions:
@@ -30,7 +30,7 @@ jobs:
 
             Thanks for the PR!
 
-            After merge, new images are deoployed and promoted to DEV:
+            After merge, new images are deployed and promoted to DEV:
             - [DEV Homepage](https://limesurvey-dev.${{ env.DOMAIN }})
 
 

@@ -13,6 +13,13 @@ on:
         required: true
         default: "dev"
         type: string
+    secrets:
+      OPENSHIFT_SERVER:
+        required: true
+      OPENSHIFT_SA_TOKEN:
+        required: true
+      OPENSHIFT_NAMESPACE:
+        required: true
 
   workflow_dispatch:
     inputs:
@@ -29,7 +36,13 @@ on:
         description: Specify a tag to deploy
         required: false
         type: string
-        
+
+concurrency:
+  # Serialize deploys per environment (do not cancel in-flight deploys)
+  group: deploy-${{ inputs.environment || github.event.inputs.environment || 'dev' }}
+  cancel-in-progress: false
+
+
 jobs:
   helm-deploy:
     environment: ${{ inputs.environment || github.event.inputs.environment || 'dev' }}
@@ -64,9 +77,9 @@ jobs:
           echo "release=${release}" >> $GITHUB_OUTPUT
           echo "version=${version}" >> $GITHUB_OUTPUT
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Set up OpenShift CLI
-        uses: redhat-actions/openshift-tools-installer@v1.13.1
+        uses: redhat-actions/openshift-tools-installer@144527c7d98999f2652264c048c7a9bd103f8a82 # v1.13.1
         with:
           oc: "4.16"
           skip_cache: true
