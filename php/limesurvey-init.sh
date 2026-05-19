@@ -92,6 +92,8 @@ if [[ "$TABLES_EXIST" == "empty" ]]; then
   php "$ROOT_DIR/limesurvey/application/commands/console.php" install "$ADMIN_USER" "$ADMIN_PASSWORD" "$ADMIN_FULLNAME" "$ADMIN_EMAIL"
 elif [[ "$TABLES_EXIST" == "true" ]]; then
   echo "Database appears to be initialized."
+  echo "Checking for and applying database updates..."
+  php "$ROOT_DIR/limesurvey/application/commands/console.php" updatedb
 else
   echo "Error checking database tables. Output was: $TABLES_EXIST"
   exit 1
