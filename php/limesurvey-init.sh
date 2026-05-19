@@ -39,9 +39,6 @@ CONFIG_FILE="$ROOT_DIR/limesurvey/application/config/email.php"
 mkdir -p "$ROOT_DIR/limesurvey/tmp/runtime" "$ROOT_DIR/limesurvey/tmp/assets" "$ROOT_DIR/limesurvey/tmp/files" || echo "Temporary directories already exist."
 mkdir -p "$ROOT_DIR/limesurvey/upload/admintheme" "$ROOT_DIR/limesurvey/upload/global" "$ROOT_DIR/limesurvey/upload/labels" "$ROOT_DIR/limesurvey/upload/plugins" "$ROOT_DIR/limesurvey/upload/surveys" "$ROOT_DIR/limesurvey/upload/themes" "$ROOT_DIR/limesurvey/upload/themes/survey" "$ROOT_DIR/limesurvey/upload/twig" || echo "Upload directories already exist."
 touch "$ROOT_DIR/limesurvey/application/config/security.php"
-#rm "$ROOT_DIR/limesurvey/tmp/runtime/application.log"
-#ln -s /proc/1/fd/2 "$ROOT_DIR/limesurvey/tmp/runtime/application.log"
-
 
 ADMIN_USER="${ADMIN_USER:-admin}"
 ADMIN_FULLNAME="${ADMIN_FULLNAME:-Administrator}"
@@ -53,30 +50,33 @@ sed -i "s|^\(\$config\['siteadminname'\]\s*=\s*\).*|\1'$ADMIN_FULLNAME';|" "$CON
 
 print_step "Email configuration updated in $CONFIG_FILE."
 
-print_step "Ensuring database tables are present..."
+print_step "Verifying database connection and table status..."
 
-# Check if database tables exist
-TABLES_EXIST=false
-if [[ "$DB_TYPE" == "mssql" ]]; then
-  # Use PHP to check MSSQL tables (since sqlcmd may not be available)
-  TABLES_EXIST=$(php -r "
-    try {
-      \$pdo = new PDO('sqlsrv:Server=${DB_HOST},${DB_PORT};TrustServerCertificate=True;Database=${DB_NAME}', '${DB_USER}', '${DB_PASSWORD}');
-      \$result = \$pdo->query(\"SELECT COUNT(*) FROM information_schema.tables WHERE table_type='BASE TABLE'\");
-      \$count = \$result->fetchColumn();
-      echo (\$count > 0) ? 'true' : 'empty';
-    } catch (Exception \$e) {
-      echo "\$e";
-      echo 'false';
-    }
-  " || echo 'false')
-  echo $TABLES_EXIST
-else
-  # Use psql for PostgreSQL
-  table_list_result=$(psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "\dt" 2>/dev/null || echo "")
-  table_list_has_results=$(echo "$table_list_result" | grep -v 'No relations found.' || echo "")
-  TABLES_EXIST=$([ -n "$table_list_has_results" ] && echo 'true' || echo 'false')
-fi
+# Use PHP to parse the generated config.php and check table existence.
+# This ensures we use the exact connection string LimeSurvey will use,
+# and allows us to distinguish between connection failure and an empty DB.
+TABLES_EXIST=$(php -r "
+  try {
+    // Satisfy LimeSurvey's internal security check to allow direct import
+    define('BASEPATH', true);
+    
+    // Load the exact config Limesurvey generated/uses
+    \$config = require('$ROOT_DIR/limesurvey/application/config/config.php');
+    \$db = \$config['components']['db'];
+    
+    // Connect using Limesurvey's own connection string
+    \$pdo = new PDO(\$db['connectionString'], \$db['username'], \$db['password']);
+    \$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    
+    // Check if tables already exist
+    \$result = \$pdo->query(\"SELECT COUNT(*) FROM information_schema.tables WHERE table_type='BASE TABLE'\");
+    \$count = \$result->fetchColumn();
+    echo (\$count > 0) ? 'true' : 'empty';
+  } catch (Exception \$e) {
+    // Return 'error' instead of 'empty' so we don't try to install against a broken connection
+    echo 'error';
+  }
+" || echo 'error')
 
 if [[ "$TABLES_EXIST" == "empty" ]]; then
   echo "Setting up LimeSurvey database..."

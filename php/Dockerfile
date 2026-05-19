@@ -83,6 +83,8 @@ RUN echo "LimeSurvey not found, downloading..." && \
     rm -f /tmp/limesurvey.zip && \
     echo "LimeSurvey downloaded and extracted."
 
+COPY StderrLogRoute.php /var/www/html/limesurvey/application/extensions/StderrLogRoute.php
+
 RUN chmod 777 "$ROOT_DIR/limesurvey/application/config/"
 
 WORKDIR /var/www/html/limesurvey

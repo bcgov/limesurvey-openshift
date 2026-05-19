@@ -22,10 +22,9 @@ return array(
           ),
           'log' => array(
             'routes' => array(
-              'filerror' => array(
-                'class' => 'CFileLogRoute',
+              'stderr' => array(
+                'class' => 'application.extensions.StderrLogRoute',
                 'levels' => 'trace, debug, info, warning, error',
-                'logFile' => 'application.log',
               ),
             ),
           ),
