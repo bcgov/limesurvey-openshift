@@ -9,7 +9,7 @@ RUN git clone https://github.com/SondagesPro/limesurvey-oauth2.git AuthOAuth2 \
 FROM php:8.4-fpm
 
 ENV ROOT_DIR="/var/www/html"
-ENV RELEASE="7.0.0-beta2+260415.zip"
+ENV RELEASE="7.0.0-RC1+260430.zip"
 
 RUN DEBVERSION=$(grep VERSION_ID /etc/os-release | cut -d '"' -f 2 | cut -d '.' -f 1) \
     && curl -sSL -o /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/config/debian/${DEBVERSION}/packages-microsoft-prod.deb \
