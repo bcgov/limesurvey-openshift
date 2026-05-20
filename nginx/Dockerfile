@@ -36,7 +36,7 @@ RUN echo "LimeSurvey not found, downloading..." && \
     curl -L "https://download.limesurvey.org/latest-develop-major/limesurvey${RELEASE}" -o /tmp/limesurvey.zip && \
     unzip -o /tmp/limesurvey.zip -d "$ROOT_DIR" | pv -lf -s "$(unzip -l /tmp/limesurvey.zip | wc -l)" > /dev/null && \
     rm -f /tmp/limesurvey.zip && \
-    find "$ROOT_DIR/limesurvey/editor" -mindepth 1 -maxdepth 1 ! -name 'build' -exec rm -rf {} + && \
+#    find "$ROOT_DIR/limesurvey/editor" -mindepth 1 -maxdepth 1 ! -name 'build' -exec rm -rf {} + && \
     echo "LimeSurvey downloaded and extracted."
 
 # Claim ownership for the NGiNX user
