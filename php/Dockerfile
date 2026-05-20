@@ -81,6 +81,7 @@ RUN echo "LimeSurvey not found, downloading..." && \
     curl -L "https://download.limesurvey.org/latest-develop-major/limesurvey${RELEASE}" -o /tmp/limesurvey.zip && \
     unzip -o /tmp/limesurvey.zip -d "$ROOT_DIR" | pv -lf -s "$(unzip -l /tmp/limesurvey.zip | wc -l)" > /dev/null && \
     rm -f /tmp/limesurvey.zip && \
+    find "$ROOT_DIR/limesurvey/editor" -mindepth 1 -maxdepth 1 ! -name 'build' -exec rm -rf {} + && \
     echo "LimeSurvey downloaded and extracted."
 
 COPY StderrLogRoute.php /var/www/html/limesurvey/application/extensions/StderrLogRoute.php
@@ -90,6 +91,6 @@ RUN chmod 777 "$ROOT_DIR/limesurvey/application/config/"
 WORKDIR /var/www/html/limesurvey
 COPY --from=plugin --exclude=.git /opt/AuthOAuth2 ./plugins/AuthOAuth2
 
-USER www-data
+USER 1001
 ENTRYPOINT ["docker-php-entrypoint"]
 CMD ["php-fpm"]
