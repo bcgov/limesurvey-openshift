@@ -17,7 +17,7 @@ limesurvey-nginx:
   volumeMounts:
     mountPath: /var/www/html/limesurvey/tmp/
     subPath: ""
-    name: limesurvey-data
+    name: limesurvey-tmp
   image:
     name: limesurvey-nginx
   replicaCount: 1
@@ -42,7 +42,7 @@ limesurvey-nginx:
 limesurvey-php:
   sysdigteam: false
   pvcs:
-    - name: limesurvey-data
+    - name: limesurvey-tmp
       mountPath: /var/www/html/limesurvey/tmp/
       subPath: ""
       size: 1Gi
