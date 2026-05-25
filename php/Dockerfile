@@ -65,12 +65,13 @@ RUN apt-get update \
 
 # Add debugging tools into builds if enabled
 ARG DEBUG_BUILD=false
+
 RUN if [[ ${DEBUG_BUILD} = true ]]; then \
         apt update && apt-get install --no-install-recommends -y jq vim procps iputils-ping less \
         && pecl install xdebug \
         && docker-php-ext-enable xdebug; \
     fi
-    
+
 # Copy the LimeSurvey download script into the image
 COPY limesurvey-init.sh /usr/local/bin/limesurvey-init.sh
 RUN chmod +x /usr/local/bin/limesurvey-init.sh
@@ -81,7 +82,7 @@ RUN echo "LimeSurvey not found, downloading..." && \
     curl -L "https://download.limesurvey.org/latest-develop-major/limesurvey${RELEASE}" -o /tmp/limesurvey.zip && \
     unzip -o /tmp/limesurvey.zip -d "$ROOT_DIR" | pv -lf -s "$(unzip -l /tmp/limesurvey.zip | wc -l)" > /dev/null && \
     rm -f /tmp/limesurvey.zip && \
-#    find "$ROOT_DIR/limesurvey/editor" -mindepth 1 -maxdepth 1 ! -name 'build' -exec rm -rf {} + && \
+    find "$ROOT_DIR/limesurvey/editor" -mindepth 1 -maxdepth 1 ! -name 'build' ! -name "index.html" -exec rm -rf {} + && \
     echo "LimeSurvey downloaded and extracted."
 
 COPY StderrLogRoute.php /var/www/html/limesurvey/application/extensions/StderrLogRoute.php
