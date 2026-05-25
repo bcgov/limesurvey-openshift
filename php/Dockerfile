@@ -85,11 +85,14 @@ RUN echo "LimeSurvey not found, downloading..." && \
     find "$ROOT_DIR/limesurvey/editor" -mindepth 1 -maxdepth 1 ! -name 'build' ! -name "index.html" -exec rm -rf {} + && \
     echo "LimeSurvey downloaded and extracted."
 
-COPY StderrLogRoute.php /var/www/html/limesurvey/application/extensions/StderrLogRoute.php
+COPY StderrLogRoute.php "$ROOT_DIR/limesurvey/application/extensions/StderrLogRoute.php"
 
-RUN chmod 777 "$ROOT_DIR/limesurvey/application/config/"
+# Config is rendered into /etc/limesurvey/rendered/config.php by the init container and then symlinked to the expected location. Prevents us having to make the config directory writable.
+# Main container overrides this symlink with a volumeMount of the rendered config, but this ensures that the file exists at build time for the symlink to work
+    
+RUN chmod 0770 "$ROOT_DIR/limesurvey/application/config/"
 
-WORKDIR /var/www/html/limesurvey
+WORKDIR "$ROOT_DIR/limesurvey"
 COPY --from=plugin --exclude=.git /opt/AuthOAuth2 ./plugins/AuthOAuth2
 
 USER 1001
