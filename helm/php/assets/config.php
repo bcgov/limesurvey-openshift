@@ -42,6 +42,8 @@ return array(
         'language' => 'en',
         'sitename' => 'BC Gov Survey',
         'updatable' => false,
+        'encryptionnonce' => '${ENCRYPTION_NONCE}',
+        'encryptionsecretboxkey' => '${ENCRYPTION_SECRETBOXKEY}',
     )
 );
 /* End of file config.php */

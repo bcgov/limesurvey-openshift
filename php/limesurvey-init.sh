@@ -38,7 +38,6 @@ CONFIG_FILE="$ROOT_DIR/limesurvey/application/config/email.php"
 
 mkdir -p "$ROOT_DIR/limesurvey/tmp/runtime" "$ROOT_DIR/limesurvey/tmp/assets" "$ROOT_DIR/limesurvey/tmp/files" || echo "Temporary directories already exist."
 mkdir -p "$ROOT_DIR/limesurvey/upload/admintheme" "$ROOT_DIR/limesurvey/upload/global" "$ROOT_DIR/limesurvey/upload/labels" "$ROOT_DIR/limesurvey/upload/plugins" "$ROOT_DIR/limesurvey/upload/surveys" "$ROOT_DIR/limesurvey/upload/themes" "$ROOT_DIR/limesurvey/upload/themes/survey" "$ROOT_DIR/limesurvey/upload/twig" || echo "Upload directories already exist."
-touch "$ROOT_DIR/limesurvey/application/config/security.php"
 
 ADMIN_USER="${ADMIN_USER:-admin}"
 ADMIN_FULLNAME="${ADMIN_FULLNAME:-Administrator}"
@@ -92,6 +91,8 @@ if [[ "$TABLES_EXIST" == "empty" ]]; then
   php "$ROOT_DIR/limesurvey/application/commands/console.php" install "$ADMIN_USER" "$ADMIN_PASSWORD" "$ADMIN_FULLNAME" "$ADMIN_EMAIL"
 elif [[ "$TABLES_EXIST" == "true" ]]; then
   echo "Database appears to be initialized."
+  echo "Checking for and applying database updates..."
+  php "$ROOT_DIR/limesurvey/application/commands/console.php" updatedb
 else
   echo "Error checking database tables. Output was: $TABLES_EXIST"
   exit 1

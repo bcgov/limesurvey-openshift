@@ -1,7 +1,7 @@
 FROM nginx:1
 
 ENV ROOT_DIR="/var/www/html"
-ENV RELEASE="7.0.0-beta2+260415.zip"
+ENV RELEASE="7.0.0-RC1+260430.zip"
 
 # Install the GNU Compiler Collection
 RUN apt-get update \
@@ -17,9 +17,9 @@ RUN apt-get update \
     /var/cache/nginx/scgi_temp \
     /var/cache/nginx/uwsgi_temp
 
-ARG DEBUG_BUILD=true
-
 # Add debugging tools into builds if enabled
+ARG DEBUG_BUILD=false
+
 RUN if [ ${DEBUG_BUILD} = true ]; then \
   apt update && apt-get install --no-install-recommends -y jq vim procps iputils-ping less; \
 fi
@@ -36,6 +36,7 @@ RUN echo "LimeSurvey not found, downloading..." && \
     curl -L "https://download.limesurvey.org/latest-develop-major/limesurvey${RELEASE}" -o /tmp/limesurvey.zip && \
     unzip -o /tmp/limesurvey.zip -d "$ROOT_DIR" | pv -lf -s "$(unzip -l /tmp/limesurvey.zip | wc -l)" > /dev/null && \
     rm -f /tmp/limesurvey.zip && \
+    find "$ROOT_DIR/limesurvey/editor" -mindepth 1 -maxdepth 1 ! -name 'build' ! -name "index.html" -exec rm -rf {} + && \
     echo "LimeSurvey downloaded and extracted."
 
 # Claim ownership for the NGiNX user

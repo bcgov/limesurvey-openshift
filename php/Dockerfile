@@ -9,7 +9,7 @@ RUN git clone https://github.com/SondagesPro/limesurvey-oauth2.git AuthOAuth2 \
 FROM php:8.4-fpm
 
 ENV ROOT_DIR="/var/www/html"
-ENV RELEASE="7.0.0-beta2+260415.zip"
+ENV RELEASE="7.0.0-RC1+260430.zip"
 
 RUN DEBVERSION=$(grep VERSION_ID /etc/os-release | cut -d '"' -f 2 | cut -d '.' -f 1) \
     && curl -sSL -o /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/config/debian/${DEBVERSION}/packages-microsoft-prod.deb \
@@ -65,12 +65,13 @@ RUN apt-get update \
 
 # Add debugging tools into builds if enabled
 ARG DEBUG_BUILD=false
+
 RUN if [[ ${DEBUG_BUILD} = true ]]; then \
         apt update && apt-get install --no-install-recommends -y jq vim procps iputils-ping less \
         && pecl install xdebug \
         && docker-php-ext-enable xdebug; \
     fi
-    
+
 # Copy the LimeSurvey download script into the image
 COPY limesurvey-init.sh /usr/local/bin/limesurvey-init.sh
 RUN chmod +x /usr/local/bin/limesurvey-init.sh
@@ -81,15 +82,19 @@ RUN echo "LimeSurvey not found, downloading..." && \
     curl -L "https://download.limesurvey.org/latest-develop-major/limesurvey${RELEASE}" -o /tmp/limesurvey.zip && \
     unzip -o /tmp/limesurvey.zip -d "$ROOT_DIR" | pv -lf -s "$(unzip -l /tmp/limesurvey.zip | wc -l)" > /dev/null && \
     rm -f /tmp/limesurvey.zip && \
+    find "$ROOT_DIR/limesurvey/editor" -mindepth 1 -maxdepth 1 ! -name 'build' ! -name "index.html" -exec rm -rf {} + && \
     echo "LimeSurvey downloaded and extracted."
 
-COPY StderrLogRoute.php /var/www/html/limesurvey/application/extensions/StderrLogRoute.php
+COPY StderrLogRoute.php "$ROOT_DIR/limesurvey/application/extensions/StderrLogRoute.php"
 
-RUN chmod 777 "$ROOT_DIR/limesurvey/application/config/"
+# Config is rendered into /etc/limesurvey/rendered/config.php by the init container and then symlinked to the expected location. Prevents us having to make the config directory writable.
+# Main container overrides this symlink with a volumeMount of the rendered config, but this ensures that the file exists at build time for the symlink to work
+    
+RUN chmod 0770 "$ROOT_DIR/limesurvey/application/config/"
 
-WORKDIR /var/www/html/limesurvey
+WORKDIR "$ROOT_DIR/limesurvey"
 COPY --from=plugin --exclude=.git /opt/AuthOAuth2 ./plugins/AuthOAuth2
 
-USER www-data
+USER 1001
 ENTRYPOINT ["docker-php-entrypoint"]
 CMD ["php-fpm"]
