@@ -40,7 +40,7 @@ jobs:
       sha_short: ${{ steps.resolve_sha.outputs.sha_short }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7.0.1
         with:
           ref: main
           fetch-depth: 0
@@ -124,7 +124,7 @@ jobs:
       matrix:
         package: [php, nginx]
     steps:
-      - uses: shrink/actions-docker-registry-tag@v4
+      - uses: shrink/actions-docker-registry-tag@v5
         with:
           registry: ghcr.io
           repository: ${{ github.repository }}/limesurvey-${{ matrix.package }}
@@ -140,10 +140,10 @@ jobs:
       contents: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7.0.1
 
       - name: Create GitHub Pre-release with Release Notes
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ inputs.rc_tag }}
           prerelease: true
