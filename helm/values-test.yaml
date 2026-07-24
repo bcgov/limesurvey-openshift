@@ -5,7 +5,6 @@ global:
   host: "limesurvey-test.apps.silver.devops.gov.bc.ca"
   image:
     tag: test
-
   vault:
     engine: cd77be-nonprod
     path: "/test"

@@ -5,10 +5,12 @@ global:
   host: "limesurvey-prod.apps.silver.devops.gov.bc.ca"
   image:
     tag: prod
-
   vault:
     engine: cd77be-prod
     path: "" # No specific path for production, use root
 
 limesurvey-nginx:
+  replicaCount: 3
+
+limesurvey-php:
   replicaCount: 3
