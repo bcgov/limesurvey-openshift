@@ -7,8 +7,23 @@ name: Create Test rc Tag
 on:
   workflow_dispatch:
     inputs:
+      source_type:
+        description: 'Source to promote (auto keeps legacy build_sha behavior)'
+        required: false
+        type: choice
+        default: 'auto'
+        options:
+          - auto
+          - latest
+          - pr
+          - sha
+          - ref
+      source_value:
+        description: 'PR number, SHA, or ref; optional for latest/auto'
+        required: false
+        type: string
       build_sha:
-        description: 'Git Commit (not image) SHA/ref to tag (full, short, sha-xxxxxxx, or latest)'
+        description: 'Legacy source: Git commit SHA/ref to tag (full, short, sha-xxxxxxx, or latest)'
         required: true
         type: string
         default: 'latest'
@@ -30,7 +45,7 @@ on:
 permissions:
   contents: write
   packages: write
-  actions: write
+  pull-requests: read
 
 jobs:
   create-rc-tag:
@@ -38,6 +53,7 @@ jobs:
     outputs:
       target_sha: ${{ steps.resolve_sha.outputs.target_sha }}
       sha_short: ${{ steps.resolve_sha.outputs.sha_short }}
+      source_tag: ${{ steps.resolve_sha.outputs.source_tag }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -48,6 +64,8 @@ jobs:
 
       - name: Validate inputs
         id: resolve_sha
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
 
@@ -65,39 +83,97 @@ jobs:
             exit 1
           fi
 
-          # Resolve supported SHA/ref input formats.
-          BUILD_SHA="${{ inputs.build_sha }}"
-          if [[ "$BUILD_SHA" == "latest" ]]; then
-            BUILD_SHA="origin/main"
-          elif [[ "$BUILD_SHA" =~ ^sha-([0-9a-fA-F]{7,40})$ ]]; then
-            BUILD_SHA="${BASH_REMATCH[1]}"
-          elif [[ "$BUILD_SHA" =~ ^[0-9a-fA-F]{7,40}$ ]]; then
-            # plain short or full SHA — accepted as-is
-            :
-          fi
-
-          # If the input is a bare SHA, attempt a direct object fetch as a fallback.
-          # This covers commits not reachable from any branch or tag (e.g. PR heads, force-pushed commits).
-          if [[ "$BUILD_SHA" =~ ^[0-9a-fA-F]{7,40}$ ]]; then
-            echo "Fetching commit $BUILD_SHA directly..."
-            git fetch origin "$BUILD_SHA" --quiet || true
-          fi
-
-          # Resolve and validate: git rev-parse --verify handles short SHAs, full SHAs, and ref names
-          if ! TARGET_SHA="$(git rev-parse --verify "${BUILD_SHA}^{commit}" 2>/dev/null)"; then
-            echo "Error: build_sha '$BUILD_SHA' was not found or is not a commit reachable from fetched refs."
-            echo "Tip: use a full 40-character SHA, a branch name, sha-xxxxxxx format, or 'latest'."
+          if git rev-parse "$RC_TAG" >/dev/null 2>&1; then
+            echo "Error: RC tag '$RC_TAG' already exists."
             exit 1
+          fi
+
+          SOURCE_TYPE="${{ inputs.source_type }}"
+          SOURCE_VALUE="${{ inputs.source_value }}"
+          if [[ -z "$SOURCE_VALUE" ]]; then
+            SOURCE_VALUE="${{ inputs.build_sha }}"
+          fi
+
+          TARGET_SHA=""
+          BUILD_SHA=""
+
+          if [[ "$SOURCE_TYPE" == "pr" ]]; then
+            PR_NUMBER="${SOURCE_VALUE#pr-}"
+            if [[ ! "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+              echo "Error: PR source_value must be a PR number."
+              exit 1
+            fi
+
+            PR_STATE=$(gh pr view "$PR_NUMBER" --json state --jq .state)
+            if [[ "$PR_STATE" != "MERGED" ]]; then
+              echo "Error: PR #$PR_NUMBER must be merged before creating a release candidate. Current state: $PR_STATE"
+              exit 1
+            fi
+
+            TARGET_SHA=$(gh pr view "$PR_NUMBER" --json mergeCommit --jq .mergeCommit.oid)
+            if [[ -z "$TARGET_SHA" || "$TARGET_SHA" == "null" ]]; then
+              echo "Error: PR #$PR_NUMBER does not have a merge commit SHA."
+              exit 1
+            fi
+          elif [[ "$SOURCE_TYPE" == "latest" ]]; then
+            BUILD_SHA="origin/main"
+          elif [[ "$SOURCE_TYPE" == "sha" ]]; then
+            BUILD_SHA="$SOURCE_VALUE"
+          elif [[ "$SOURCE_TYPE" == "ref" ]]; then
+            BUILD_SHA="$SOURCE_VALUE"
+          elif [[ "$SOURCE_TYPE" == "auto" ]]; then
+            BUILD_SHA="$SOURCE_VALUE"
+          else
+            echo "Error: Unsupported source_type '$SOURCE_TYPE'."
+            exit 1
+          fi
+
+          # Resolve supported SHA/ref input formats.
+          if [[ -z "$TARGET_SHA" ]]; then
+            if [[ "$BUILD_SHA" == "latest" ]]; then
+              BUILD_SHA="origin/main"
+            elif [[ "$BUILD_SHA" =~ ^sha-([0-9a-fA-F]{7,40})$ ]]; then
+              BUILD_SHA="${BASH_REMATCH[1]}"
+            elif [[ "$BUILD_SHA" =~ ^[0-9a-fA-F]{7,40}$ ]]; then
+              # plain short or full SHA - accepted as-is
+              :
+            fi
+
+            # If the input is a bare SHA, attempt a direct object fetch as a fallback.
+            # This covers commits not reachable from any branch or tag (e.g. PR heads, force-pushed commits).
+            if [[ "$BUILD_SHA" =~ ^[0-9a-fA-F]{7,40}$ ]]; then
+              echo "Fetching commit $BUILD_SHA directly..."
+              git fetch origin "$BUILD_SHA" --quiet || true
+            fi
+
+            # Resolve and validate: git rev-parse --verify handles short SHAs, full SHAs, and ref names
+            if ! TARGET_SHA="$(git rev-parse --verify "${BUILD_SHA}^{commit}" 2>/dev/null)"; then
+              echo "Error: source '$BUILD_SHA' was not found or is not a commit reachable from fetched refs."
+              echo "Tip: use source_type=pr with a PR number, a full SHA, a branch name, sha-xxxxxxx format, or latest."
+              exit 1
+            fi
           fi
           SHA_SHORT="sha-${TARGET_SHA:0:7}"
 
           echo "target_sha=$TARGET_SHA" >> "$GITHUB_OUTPUT"
           echo "sha_short=$SHA_SHORT" >> "$GITHUB_OUTPUT"
+          echo "source_tag=$SHA_SHORT" >> "$GITHUB_OUTPUT"
           echo "Resolved SHA: $TARGET_SHA"
 
           if [[ "${{ inputs.dry_run }}" == "true" ]]; then
             echo "Dry run: would create tag $RC_TAG -> $TARGET_SHA"
           fi
+
+      - name: Validate Source Images
+        if: ${{ !inputs.dry_run }}
+        env:
+          SOURCE_TAG: ${{ steps.resolve_sha.outputs.source_tag }}
+        run: |
+          set -euo pipefail
+          echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          for package in php nginx; do
+            docker buildx imagetools inspect "ghcr.io/${{ github.repository }}/limesurvey-$package:$SOURCE_TAG" >/dev/null
+          done
 
       - name: Create and push RC tag
         if: ${{ !inputs.dry_run }}
@@ -128,7 +204,7 @@ jobs:
         with:
           registry: ghcr.io
           repository: ${{ github.repository }}/limesurvey-${{ matrix.package }}
-          target: ${{ needs.create-rc-tag.outputs.sha_short }}
+          target: ${{ needs.create-rc-tag.outputs.source_tag }}
           tags: ${{ inputs.rc_tag }}
 
   create-release:

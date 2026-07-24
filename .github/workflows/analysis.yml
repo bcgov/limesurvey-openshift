@@ -85,9 +85,25 @@ jobs:
 
   results:
     name: Results
-    needs: [codeql, trivy]
-    if: always() && (! failure())
+    needs: [helm-validate, codeql, trivy]
+    if: always()
     runs-on: ubuntu-24.04
     timeout-minutes: 1
     steps:
-      - run: echo "Success!"
+      - name: Check Results
+        run: |
+          set -euo pipefail
+
+          if [ "${{ needs.helm-validate.result }}" != "success" ]; then
+            echo "Helm validation failed: ${{ needs.helm-validate.result }}"
+            exit 1
+          fi
+
+          for result in "${{ needs.codeql.result }}" "${{ needs.trivy.result }}"; do
+            if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
+              echo "Analysis failed: $result"
+              exit 1
+            fi
+          done
+
+          echo "Success!"

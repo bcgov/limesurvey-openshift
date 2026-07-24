@@ -1,0 +1,105 @@
+name: Deploy PR or Branch Image
+run-name: "Deploy ${{ inputs.source_type }}:${{ inputs.source_value }} to ${{ inputs.environment }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_type:
+        description: 'Image source to deploy'
+        required: true
+        type: choice
+        default: pr
+        options:
+          - pr
+          - branch
+          - sha
+          - tag
+      source_value:
+        description: 'PR number, branch name, SHA, or explicit image tag'
+        required: true
+        type: string
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        default: dev
+        options:
+          - dev
+          - test
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  resolve:
+    name: Resolve Image Tag
+    runs-on: ubuntu-24.04
+    outputs:
+      tag: ${{ steps.resolve.outputs.tag }}
+    steps:
+      - name: Resolve Tag
+        id: resolve
+        env:
+          SOURCE_TYPE: ${{ inputs.source_type }}
+          SOURCE_VALUE: ${{ inputs.source_value }}
+        run: |
+          set -euo pipefail
+
+          case "$SOURCE_TYPE" in
+            pr)
+              if [[ ! "$SOURCE_VALUE" =~ ^[0-9]+$ ]]; then
+                echo "Error: source_value must be a PR number when source_type=pr."
+                exit 1
+              fi
+              tag="pr-$SOURCE_VALUE"
+              ;;
+            branch)
+              branch=$(echo "$SOURCE_VALUE" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9_.-]+/-/g; s/^-+//; s/-+$//; s/-+/-/g' | cut -c1-100)
+              if [ -z "$branch" ]; then
+                echo "Error: branch source_value resolved to an empty image tag."
+                exit 1
+              fi
+              tag="branch-$branch"
+              ;;
+            sha)
+              sha="${SOURCE_VALUE#sha-}"
+              if [[ ! "$sha" =~ ^[0-9a-fA-F]{7,40}$ ]]; then
+                echo "Error: source_value must be a short or full Git SHA when source_type=sha."
+                exit 1
+              fi
+              tag="sha-${sha:0:7}"
+              ;;
+            tag)
+              tag="$SOURCE_VALUE"
+              ;;
+            *)
+              echo "Error: unsupported source_type '$SOURCE_TYPE'."
+              exit 1
+              ;;
+          esac
+
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "Resolved image tag: $tag"
+
+      - name: Validate Images Exist
+        env:
+          TAG: ${{ steps.resolve.outputs.tag }}
+        run: |
+          set -euo pipefail
+          echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          for package in php nginx; do
+            docker buildx imagetools inspect "ghcr.io/${{ github.repository }}/limesurvey-$package:$TAG" >/dev/null
+          done
+
+  deploy:
+    name: Deploy
+    needs: [resolve]
+    uses: ./.github/workflows/helm-cd.yml
+    permissions:
+      contents: read
+      packages: write
+    with:
+      environment: ${{ inputs.environment }}
+      tag: ${{ needs.resolve.outputs.tag }}
+    secrets: inherit

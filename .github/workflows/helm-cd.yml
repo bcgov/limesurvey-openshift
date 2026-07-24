@@ -10,7 +10,7 @@ on:
         type: string
       environment:
         description: "Target environment to deploy"
-        required: true
+        required: false
         default: "dev"
         type: string
     secrets:

@@ -31,7 +31,7 @@ jobs:
         uses: bcgov/action-get-pr@bf6c85d0ed23a151f2829956c140fde87979bbf2 #v0.2.0
       - name: PR Number
         id: pr
-        run: echo pr=${{ steps.pr_no.outputs.pr || inputs.pr}} >> $GITHUB_OUTPUT
+        run: echo pr=${{ steps.pr_no.outputs.pr }} >> $GITHUB_OUTPUT
 
   deploy-dev:
     name: Deploy (DEV)
@@ -47,7 +47,7 @@ jobs:
 
   tag-sha:
     name: Tag Images with Commit SHA
-    needs: [vars]
+    needs: [vars, deploy-dev]
     runs-on: ubuntu-24.04
     permissions:
       packages: write
