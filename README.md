@@ -27,6 +27,14 @@ docker push [repo]/[name]:[version]
 Furthermore, there are Github Actions workflows defined in the `.github/workflows` directory to automate the build and deployment process. You may use these as a template when creating your own workflows.
 The workflows expect the following to be set up in your Github repository:
 
+The image promotion lifecycle uses immutable source tags and environment aliases:
+
+- Pull request builds publish `pr-<number>`, `branch-<sanitized-branch-name>`, and `sha-<short-sha>` image tags for both `limesurvey-php` and `limesurvey-nginx`.
+- Use the `Deploy PR or Branch Image` workflow to manually deploy a PR number, branch alias, SHA alias, or explicit image tag to `dev` or `test`.
+- Merges to `main` deploy `pr-<number>` to `dev`; after the rollout succeeds, images are retagged as `sha-<merge-short-sha>`.
+- Use the `Create Test rc Tag` workflow to create an `rc_x.x.x.x` release candidate from a merged PR number, SHA, ref, or latest `main`, then optionally deploy it to `test`.
+- Use the `Create Production v Tag` workflow to promote an existing `rc_x.x.x.x` image set to `vX.X.X.X`, then optionally deploy it to `prod`.
+
 - 3 [environments](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments): `dev`, `test`, and `prod`.
 - Per-environment Github secrets for logging into Openshift and the container registry.
   - `OPENSHIFT_SERVER`: The URL of the OpenShift API server
