@@ -41,13 +41,12 @@ spec:
           {{- end }}` }}
         {{- end }}
     spec:
-      {{- $pvcs := .Values.pvcs }}
       volumes:
-{{- range $pvc := $pvcs }}
+        {{- range $pvc := .Values.pvcs }}
         - name: {{ $pvc.name }}
           persistentVolumeClaim:
             claimName: {{ $pvc.name }}
-{{- end }}
+        {{- end }}
         - name: tmp
           emptyDir: {}
         - name: config-limesurvey-application
@@ -73,7 +72,7 @@ spec:
               subPath: config.php.tmpl
             - name: config-rendered
               mountPath: "/etc/limesurvey/rendered"
-            {{- range $pvc := $pvcs }}
+            {{- range $pvc := .Values.pvcs }}
             - mountPath: {{ $pvc.mountPath | quote }}
               name: {{ $pvc.name }}
               {{- if $pvc.subPath }}
@@ -115,7 +114,7 @@ spec:
               readOnly: true
               mountPath: "/var/www/html/limesurvey/application/config/config.php"
               subPath: config.php
-            {{- range $pvc := $pvcs }}
+            {{- range $pvc := .Values.pvcs }}
             - mountPath: {{ $pvc.mountPath | quote }}
               name: {{ $pvc.name }}
               {{- if $pvc.subPath }}

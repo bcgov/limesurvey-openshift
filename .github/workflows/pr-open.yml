@@ -63,6 +63,6 @@ jobs:
           package: 'limesurvey-${{ matrix.package }}'
           build_context: ${{ matrix.package }}
           build_file: '${{ matrix.package }}/Dockerfile'
-          tags: ${{ needs.vars.outputs.pr }}
+          tags: pr-${{ needs.vars.outputs.pr }}
           tag_fallback: latest
           triggers: '${{ matrix.package }}/' #omit to build everything

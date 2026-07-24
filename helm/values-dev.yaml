@@ -5,7 +5,6 @@ global:
   host: "limesurvey-dev.apps.silver.devops.gov.bc.ca"
   image:
     tag: dev
-
   vault:
     engine: cd77be-nonprod
     path: "/dev"

@@ -15,9 +15,20 @@ global:
 
 limesurvey-nginx:
   volumeMounts:
+  - name: config-limesurvey-nginx
+    mountPath: "/etc/nginx/conf.d"
+    type: configMap
+    readOnly: true
+  - name: limesurvey-tmp
+    type: persistentVolumeClaim
     mountPath: /var/www/html/limesurvey/tmp/
     subPath: ""
-    name: limesurvey-tmp
+  pvcs:
+  - name: limesurvey-accesslogs
+    mountPath: /logs
+    subPath: ""
+    size: 1Gi
+    accessMode: ReadWriteMany
   image:
     name: limesurvey-nginx
   replicaCount: 1
