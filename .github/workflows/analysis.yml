@@ -2,11 +2,17 @@ name: Scan & Validate
 run-name: "Analysis (PR #${{ github.event.pull_request.number || github.run_number }})"
 
 on:
+  workflow_call:
+    inputs:
+      image_tag:
+        description: "Immutable image tag to scan from GHCR"
+        required: true
+        type: string
   merge_group:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]
-#  schedule:
-#    - cron: "0 11 * * 0" # 3 AM PST = 12 PM UDT, runs sundays
+  schedule:
+    - cron: "0 11 * * 0" # 3 AM PST = 12 PM UDT, runs Sundays
   workflow_dispatch:
 
 concurrency:
@@ -15,11 +21,12 @@ concurrency:
 
 jobs:
   helm-validate:
+    if: github.event_name != 'workflow_call'
     runs-on: ubuntu-24.04
     name: Validate Helm Templates
     steps:
       - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Update & Build Helm dependencies
         run: |
           helm dependency build helm
@@ -36,57 +43,85 @@ jobs:
 
   codeql:
     name: CodeQL
-    if: (! github.event.pull_request.draft)
+    if: github.event_name != 'workflow_call' && (! github.event.pull_request.draft)
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v6
-      - uses: github/codeql-action/init@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: github/codeql-action/init@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4
         with:
           languages: actions
     
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v4
+        uses: github/codeql-action/autobuild@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4
+        uses: github/codeql-action/analyze@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4
         with:
           category: "/language:actions"
 
   # https://github.com/marketplace/actions/aqua-security-trivy
   trivy:
     name: Trivy Security Scan
-    if: (! github.event.pull_request.draft)
+    if: github.event_name != 'workflow_call' && (! github.event.pull_request.draft)
     permissions:
       security-events: write
     runs-on: ubuntu-24.04
-    timeout-minutes: 1
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Update & Build Helm dependencies
         run: |
           helm dependency build helm
           helm dependency update helm
-      - name: Run Trivy vulnerability scanner in repo mode
+      - name: Scan repository
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # 0.36.0
         with:
           format: "sarif"
-          output: "trivy-results.sarif"
+          output: "trivy-repository.sarif"
           ignore-unfixed: true
           scan-type: "fs"
           scanners: "vuln,secret,misconfig"
           severity: "CRITICAL,HIGH"
-#          skip-dirs: '**/charts' # Skips all subchart directories
-
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v4
+      - name: Upload repository scan results
+        uses: github/codeql-action/upload-sarif@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4
         with:
-          sarif_file: "trivy-results.sarif"
+          sarif_file: "trivy-repository.sarif"
+          category: "trivy-repository"
+
+  trivy-images:
+    name: Scan Published Images
+    if: github.event_name == 'workflow_call'
+    runs-on: ubuntu-24.04
+    permissions:
+      packages: read
+      security-events: write
+    strategy:
+      matrix:
+        package: [php, nginx]
+    timeout-minutes: 10
+    steps:
+      - name: Authenticate to GHCR
+        run: echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Scan image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # 0.36.0
+        with:
+          format: "sarif"
+          output: "trivy-${{ matrix.package }}-image.sarif"
+          ignore-unfixed: true
+          image-ref: "ghcr.io/${{ github.repository }}/limesurvey-${{ matrix.package }}:${{ inputs.image_tag }}"
+          scan-type: "image"
+          severity: "CRITICAL,HIGH"
+      - name: Upload image scan results
+        uses: github/codeql-action/upload-sarif@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4
+        with:
+          sarif_file: "trivy-${{ matrix.package }}-image.sarif"
+          category: "trivy-${{ matrix.package }}-image"
 
   results:
     name: Results
     needs: [helm-validate, codeql, trivy]
-    if: always()
+    if: always() && github.event_name != 'workflow_call'
     runs-on: ubuntu-24.04
     timeout-minutes: 1
     steps:
