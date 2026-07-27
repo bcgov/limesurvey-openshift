@@ -34,18 +34,17 @@ echo "=== Initializing Limesurvey ==="
 
 print_step "Checking for LimeSurvey installation..."
 
-CONFIG_FILE="$ROOT_DIR/limesurvey/application/config/email.php"
+  CONFIG_FILE="$ROOT_DIR/limesurvey/application/config/email.php"
+  mkdir -p "$ROOT_DIR/limesurvey/tmp/runtime" "$ROOT_DIR/limesurvey/tmp/assets" "$ROOT_DIR/limesurvey/tmp/files"
+  mkdir -p "$ROOT_DIR/limesurvey/upload/admintheme" "$ROOT_DIR/limesurvey/upload/global" "$ROOT_DIR/limesurvey/upload/labels" "$ROOT_DIR/limesurvey/upload/plugins" "$ROOT_DIR/limesurvey/upload/surveys" "$ROOT_DIR/limesurvey/upload/themes" "$ROOT_DIR/limesurvey/upload/themes/survey" "$ROOT_DIR/limesurvey/upload/twig"
 
-mkdir -p "$ROOT_DIR/limesurvey/tmp/runtime" "$ROOT_DIR/limesurvey/tmp/assets" "$ROOT_DIR/limesurvey/tmp/files" || echo "Temporary directories already exist."
-mkdir -p "$ROOT_DIR/limesurvey/upload/admintheme" "$ROOT_DIR/limesurvey/upload/global" "$ROOT_DIR/limesurvey/upload/labels" "$ROOT_DIR/limesurvey/upload/plugins" "$ROOT_DIR/limesurvey/upload/surveys" "$ROOT_DIR/limesurvey/upload/themes" "$ROOT_DIR/limesurvey/upload/themes/survey" "$ROOT_DIR/limesurvey/upload/twig" || echo "Upload directories already exist."
+  ADMIN_FULLNAME="${ADMIN_FULLNAME:-Administrator}"
+  ADMIN_EMAIL="${ADMIN_EMAIL:-admin@example.com}"
 
-ADMIN_USER="${ADMIN_USER:-admin}"
-ADMIN_FULLNAME="${ADMIN_FULLNAME:-Administrator}"
-ADMIN_EMAIL="${ADMIN_EMAIL:-admin@example.com}"
-
-sed -i "s|^\(\$config\['siteadminemail'\]\s*=\s*\).*|\1'$ADMIN_EMAIL';|" "$CONFIG_FILE"
-sed -i "s|^\(\$config\['siteadminbounce'\]\s*=\s*\).*|\1'$ADMIN_EMAIL';|" "$CONFIG_FILE"
-sed -i "s|^\(\$config\['siteadminname'\]\s*=\s*\).*|\1'$ADMIN_FULLNAME';|" "$CONFIG_FILE"
+  sed -i "s|^\(\$config\['siteadminemail'\]\s*=\s*\).*|\1'$ADMIN_EMAIL';|" "$CONFIG_FILE"
+  sed -i "s|^\(\$config\['siteadminbounce'\]\s*=\s*\).*|\1'$ADMIN_EMAIL';|" "$CONFIG_FILE"
+  sed -i "s|^\(\$config\['siteadminname'\]\s*=\s*\).*|\1'$ADMIN_FULLNAME';|" "$CONFIG_FILE"
+fi
 
 print_step "Email configuration updated in $CONFIG_FILE."
 
@@ -77,25 +76,25 @@ TABLES_EXIST=$(php -r "
   }
 " || echo 'error')
 
-if [[ "$TABLES_EXIST" == "empty" ]]; then
-  echo "Setting up LimeSurvey database..."
-  cd "$ROOT_DIR/limesurvey/application/commands"
+  if [[ "$TABLES_EXIST" == "empty" ]]; then
+    echo "Setting up LimeSurvey database..."
+    cd "$ROOT_DIR/limesurvey/application/commands"
 
-  if [[ -z "${ADMIN_PASSWORD:-}" ]]; then
-    echo "ADMIN_PASSWORD is not set, generating a random password."
-    ADMIN_PASSWORD=$(openssl rand -base64 12)
-    echo "Generated ADMIN_PASSWORD: $ADMIN_PASSWORD"
+    if [[ -z "${ADMIN_PASSWORD:-}" ]]; then
+      echo "ADMIN_PASSWORD must be supplied through secret management before the first installation."
+      exit 1
+    fi
+
+    echo "Completing LimeSurvey installation..."
+    php "$ROOT_DIR/limesurvey/application/commands/console.php" install "${ADMIN_USER:-admin}" "$ADMIN_PASSWORD" "$ADMIN_FULLNAME" "$ADMIN_EMAIL"
+  elif [[ "$TABLES_EXIST" == "true" ]]; then
+    echo "Database appears to be initialized."
+    echo "Checking for and applying database updates..."
+    php "$ROOT_DIR/limesurvey/application/commands/console.php" updatedb
+  else
+    echo "Error checking database tables. Output was: $TABLES_EXIST"
+    exit 1
   fi
-
-  echo "Completing LimeSurvey installation..."
-  php "$ROOT_DIR/limesurvey/application/commands/console.php" install "$ADMIN_USER" "$ADMIN_PASSWORD" "$ADMIN_FULLNAME" "$ADMIN_EMAIL"
-elif [[ "$TABLES_EXIST" == "true" ]]; then
-  echo "Database appears to be initialized."
-  echo "Checking for and applying database updates..."
-  php "$ROOT_DIR/limesurvey/application/commands/console.php" updatedb
-else
-  echo "Error checking database tables. Output was: $TABLES_EXIST"
-  exit 1
 fi
 
 print_step "Initial setup tasks completed."
