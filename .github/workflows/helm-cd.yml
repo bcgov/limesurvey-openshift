@@ -13,13 +13,6 @@ on:
         required: false
         default: "dev"
         type: string
-    secrets:
-      OPENSHIFT_SERVER:
-        required: true
-      OPENSHIFT_SA_TOKEN:
-        required: true
-      OPENSHIFT_NAMESPACE:
-        required: true
 
   workflow_dispatch:
     inputs:
