@@ -14,19 +14,20 @@ global:
     serviceAccount: cd77be-vault
 
 limesurvey-nginx:
-  volumeMounts:
+  volumes:
   - name: config-limesurvey-nginx
-    mountPath: "/etc/nginx/conf.d"
     type: configMap
+    mountPath: "/etc/nginx/conf.d"
     readOnly: true
   - name: limesurvey-tmp
     type: persistentVolumeClaim
     mountPath: /var/www/html/limesurvey/tmp/
     subPath: ""
-  pvcs:
   - name: limesurvey-accesslogs
+    type: persistentVolumeClaim
     mountPath: /logs
     subPath: ""
+    create: true
     size: 1Gi
     accessMode: ReadWriteMany
   image:

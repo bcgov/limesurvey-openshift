@@ -1,21 +1,19 @@
-{{ $pvcs := .Values.pvcs }}
-{{ range $index, $pvc := $pvcs }}
-
+{{- range $volume := .Values.volumes }}
+{{- if and (eq $volume.type "persistentVolumeClaim") $volume.create }}
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ required "PVC name is required" $pvc.name }}
+  name: {{ required "PVC name is required" $volume.name }}
   namespace: {{ $.Values.global.licensePlate }}{{ $.Values.global.sectionTag }}
   labels:
 {{ include "nginx.labels.standard" $ | indent 4 }}
 spec:
-  storageClassName: {{ default "netapp-file-standard" $pvc.storageClassName }}
+  storageClassName: {{ default "netapp-file-standard" $volume.storageClassName }}
   accessModes:
-    - {{ required "PVC accessMode is required" $pvc.accessMode }}
+    - {{ required (printf "PVC accessMode is required for volume %s" $volume.name) $volume.accessMode }}
   resources:
     requests:
-      storage: {{ $pvc.size | quote }}
-{{- if ne $index (sub (len $pvcs) 1) }}
----
+      storage: {{ required (printf "PVC size is required for volume %s" $volume.name) $volume.size | quote }}
 {{- end }}
 {{- end }}
