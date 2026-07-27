@@ -21,17 +21,20 @@ spec:
         app.kubernetes.io/name: {{ .Chart.Name | quote }}
     spec:
       volumes:
-        {{- range $volumeMount := .Values.volumeMounts }}
-        - name: {{ $volumeMount.name }}
-          {{ $volumeMount.type }}:
-            {{- if eq $volumeMount.type "persistentVolumeClaim" }}
-            claimName: {{ $volumeMount.name }}
-            {{- else if eq $volumeMount.type "configMap" }}
-            name: {{ $volumeMount.name }}
+        {{- range $volume := .Values.volumes }}
+        - name: {{ required "Volume name is required" $volume.name }}
+          {{- if eq $volume.type "persistentVolumeClaim" }}
+          persistentVolumeClaim:
+            claimName: {{ default $volume.name $volume.claimName }}
+            {{- if $volume.readOnly }}
+            readOnly: {{ $volume.readOnly }}
             {{- end }}
-            {{- if $volumeMount.readOnly }}
-            readOnly: {{ $volumeMount.readOnly }}
-            {{- end }}      
+          {{- else if eq $volume.type "configMap" }}
+          configMap:
+            name: {{ default $volume.name $volume.configMapName }}
+          {{- else }}
+          {{- fail (printf "Unsupported nginx volume type %q for volume %q" $volume.type $volume.name) }}
+          {{- end }}
         {{- end }}
       containers:
         - name: {{ .Chart.Name | quote }}
@@ -47,21 +50,14 @@ spec:
             limits:
               memory: {{ .Values.resources.limits.memory }}
           volumeMounts:
-            {{- range $volumeMount := .Values.volumeMounts }}
-            - mountPath: {{ $volumeMount.mountPath | quote }}
-              name: {{ $volumeMount.name }}
-              {{- if $volumeMount.subPath }}
-              subPath: {{ $volumeMount.subPath | quote }}
-              {{- end }}              
-            {{- end }}
-            {{- range $pvc := .Values.pvcs }}
-            - mountPath: {{ $pvc.mountPath | quote }}
-              name: {{ $pvc.name }}
-              {{- if $pvc.subPath }}
-              subPath: {{ $pvc.subPath | quote }}
+            {{- range $volume := .Values.volumes }}
+            - mountPath: {{ required (printf "mountPath is required for volume %s" $volume.name) $volume.mountPath | quote }}
+              name: {{ $volume.name }}
+              {{- if $volume.subPath }}
+              subPath: {{ $volume.subPath | quote }}
               {{- end }}
-              {{- if $pvc.readOnly }}
-              readOnly: {{ $pvc.readOnly }}
+              {{- if $volume.readOnly }}
+              readOnly: {{ $volume.readOnly }}
               {{- end }}
             {{- end }}
           terminationMessagePath: /dev/termination-log
