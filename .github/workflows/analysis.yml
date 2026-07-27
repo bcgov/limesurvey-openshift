@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   helm-validate:
-    if: github.event_name != 'workflow_call'
+    if: inputs.image_tag == ''
     runs-on: ubuntu-24.04
     name: Validate Helm Templates
     steps:
@@ -43,7 +43,7 @@ jobs:
 
   codeql:
     name: CodeQL
-    if: github.event_name != 'workflow_call' && (! github.event.pull_request.draft)
+    if: inputs.image_tag == '' && (! github.event.pull_request.draft)
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -63,7 +63,7 @@ jobs:
   # https://github.com/marketplace/actions/aqua-security-trivy
   trivy:
     name: Trivy Security Scan
-    if: github.event_name != 'workflow_call' && (! github.event.pull_request.draft)
+    if: inputs.image_tag == '' && (! github.event.pull_request.draft)
     permissions:
       security-events: write
     runs-on: ubuntu-24.04
@@ -91,7 +91,7 @@ jobs:
 
   trivy-images:
     name: Scan Published Images
-    if: github.event_name == 'workflow_call'
+    if: inputs.image_tag != ''
     runs-on: ubuntu-24.04
     permissions:
       packages: read
@@ -121,7 +121,7 @@ jobs:
   results:
     name: Results
     needs: [helm-validate, codeql, trivy]
-    if: always() && github.event_name != 'workflow_call'
+    if: always() && inputs.image_tag == ''
     runs-on: ubuntu-24.04
     timeout-minutes: 1
     steps:
