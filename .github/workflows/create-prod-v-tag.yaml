@@ -19,14 +19,14 @@ permissions:
   packages: write
 
 jobs:
-  create-prod-tag:
+  resolve-prod:
     runs-on: ubuntu-latest
     outputs:
       target_sha: ${{ steps.resolve.outputs.target_sha }}
       prod_tag: ${{ steps.resolve.outputs.prod_tag }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
           fetch-depth: 0
@@ -77,22 +77,9 @@ jobs:
             docker buildx imagetools inspect "ghcr.io/${{ github.repository }}/limesurvey-$package:$RC_TAG" >/dev/null
           done
 
-      - name: Create and push production tag
-        run: |
-          set -euo pipefail
-          PROD_TAG="${{ steps.resolve.outputs.prod_tag }}"
-          TARGET_SHA="${{ steps.resolve.outputs.target_sha }}"
-
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git tag "$PROD_TAG" "$TARGET_SHA"
-          git push origin "$PROD_TAG"
-
-          echo "Created and pushed tag $PROD_TAG -> $TARGET_SHA"
-
   retag-images:
     name: Retag Images
-    needs: [create-prod-tag]
+    needs: [resolve-prod]
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -100,34 +87,100 @@ jobs:
       matrix:
         package: [php, nginx]
     steps:
-      - uses: shrink/actions-docker-registry-tag@v5
+      - uses: shrink/actions-docker-registry-tag@e6aaef25c595b6e0edd18bf4c7dbfea3abd43299 # v5
         with:
           registry: ghcr.io
           repository: ${{ github.repository }}/limesurvey-${{ matrix.package }}
           target: ${{ inputs.rc_tag }}
-          tags: ${{ needs.create-prod-tag.outputs.prod_tag }}
+          tags: ${{ needs.resolve-prod.outputs.prod_tag }}
+
+  verify-images:
+    name: Verify Promoted Images
+    needs: [resolve-prod, retag-images]
+    runs-on: ubuntu-24.04
+    permissions:
+      packages: read
+    strategy:
+      matrix:
+        package: [php, nginx]
+    steps:
+      - name: Verify promoted image digest
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}/limesurvey-${{ matrix.package }}
+          SOURCE_TAG: ${{ inputs.rc_tag }}
+          DESTINATION_TAG: ${{ needs.resolve-prod.outputs.prod_tag }}
+        run: |
+          set -euo pipefail
+          echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+          source_digest=$(docker buildx imagetools inspect "$IMAGE:$SOURCE_TAG" --format '{{.Manifest.Digest}}')
+          for attempt in {1..5}; do
+            destination_digest=$(docker buildx imagetools inspect "$IMAGE:$DESTINATION_TAG" --format '{{.Manifest.Digest}}' 2>/dev/null || true)
+            if [ "$source_digest" = "$destination_digest" ]; then
+              echo "Verified $IMAGE:$DESTINATION_TAG -> $destination_digest"
+              exit 0
+            fi
+            echo "Digest not available or does not match yet ($attempt/5); retrying..."
+            sleep 5
+          done
+
+          echo "Error: $IMAGE:$DESTINATION_TAG does not match $IMAGE:$SOURCE_TAG."
+          exit 1
+
+  create-prod-tag:
+    name: Create Production Git Tag
+    needs: [resolve-prod, verify-images]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Create and push production tag
+        env:
+          PROD_TAG: ${{ needs.resolve-prod.outputs.prod_tag }}
+          TARGET_SHA: ${{ needs.resolve-prod.outputs.target_sha }}
+        run: |
+          set -euo pipefail
+          git fetch --force --tags origin
+
+          if git rev-parse --verify "refs/tags/$PROD_TAG" >/dev/null 2>&1; then
+            echo "Error: production tag '$PROD_TAG' already exists."
+            exit 1
+          fi
+
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag "$PROD_TAG" "$TARGET_SHA"
+          git push origin "refs/tags/$PROD_TAG"
+
+          echo "Created and pushed tag $PROD_TAG -> $TARGET_SHA"
 
   deploy-prod:
     name: Deploy to Prod
-    needs: [create-prod-tag, retag-images, create-release]
+    needs: [resolve-prod, create-prod-tag, retag-images, create-release]
     if: ${{ inputs.deploy_to_prd }}
     uses: ./.github/workflows/helm-cd.yml
     with:
       environment: prod
-      tag: ${{ needs.create-prod-tag.outputs.prod_tag }}
+      tag: ${{ needs.resolve-prod.outputs.prod_tag }}
     secrets: inherit
 
   create-release:
     name: Release
-    needs: [create-prod-tag, retag-images]
+    needs: [resolve-prod, create-prod-tag]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - name: Create GitHub Release with Release Notes
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3
         with:
-          tag_name: ${{ needs.create-prod-tag.outputs.prod_tag }}
+          tag_name: ${{ needs.resolve-prod.outputs.prod_tag }}
           prerelease: false
           generate_release_notes: true
-          target_commitish: ${{ needs.create-prod-tag.outputs.target_sha }}
+          target_commitish: ${{ needs.resolve-prod.outputs.target_sha }}

@@ -9,7 +9,7 @@ metadata:
     app.openshift.io/runtime: {{ .Values.labels.runtime }}
     app.openshift.io/runtime-version: {{ .Values.labels.version | quote }}
 spec:
-  replicas: {{ .Values.global.replicaCount }}
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ .Chart.Name | quote }}
