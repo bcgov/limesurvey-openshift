@@ -66,7 +66,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
       - name: Set up OpenShift CLI
-        uses: redhat-actions/openshift-tools-installer@ebd96c3fc72fc10a62663eac5e1421192152e6aa # v2.0
+        uses: redhat-actions/openshift-tools-installer@e3b32c2ab7b064b2ce189121c4a49f509a99a7b4 # v3.0
         with:
           oc: "4.16"
           skip_cache: true
