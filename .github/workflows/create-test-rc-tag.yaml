@@ -48,7 +48,7 @@ permissions:
   pull-requests: read
 
 jobs:
-  create-rc-tag:
+  resolve-rc:
     runs-on: ubuntu-latest
     outputs:
       target_sha: ${{ steps.resolve_sha.outputs.target_sha }}
@@ -56,7 +56,7 @@ jobs:
       source_tag: ${{ steps.resolve_sha.outputs.source_tag }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
           fetch-depth: 0
@@ -175,23 +175,9 @@ jobs:
             docker buildx imagetools inspect "ghcr.io/${{ github.repository }}/limesurvey-$package:$SOURCE_TAG" >/dev/null
           done
 
-      - name: Create and push RC tag
-        if: ${{ !inputs.dry_run }}
-        run: |
-          set -euo pipefail
-          RC_TAG="${{ inputs.rc_tag }}"
-          TARGET_SHA="${{ steps.resolve_sha.outputs.target_sha }}"
-
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git tag "$RC_TAG" "$TARGET_SHA"
-          git push origin "$RC_TAG"
-
-          echo "Created and pushed tag $RC_TAG -> $TARGET_SHA"
-
   retag-images:
     name: Retag Images
-    needs: [create-rc-tag]
+    needs: [resolve-rc]
     runs-on: ubuntu-latest
     if: ${{ !inputs.dry_run }}
     permissions:
@@ -200,31 +186,99 @@ jobs:
       matrix:
         package: [php, nginx]
     steps:
-      - uses: shrink/actions-docker-registry-tag@v5
+      - uses: shrink/actions-docker-registry-tag@e6aaef25c595b6e0edd18bf4c7dbfea3abd43299 # v5
         with:
           registry: ghcr.io
           repository: ${{ github.repository }}/limesurvey-${{ matrix.package }}
-          target: ${{ needs.create-rc-tag.outputs.source_tag }}
+          target: ${{ needs.resolve-rc.outputs.source_tag }}
           tags: ${{ inputs.rc_tag }}
+
+  verify-images:
+    name: Verify Promoted Images
+    needs: [resolve-rc, retag-images]
+    runs-on: ubuntu-24.04
+    if: ${{ !inputs.dry_run }}
+    permissions:
+      packages: read
+    strategy:
+      matrix:
+        package: [php, nginx]
+    steps:
+      - name: Verify promoted image digest
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}/limesurvey-${{ matrix.package }}
+          SOURCE_TAG: ${{ needs.resolve-rc.outputs.source_tag }}
+          DESTINATION_TAG: ${{ inputs.rc_tag }}
+        run: |
+          set -euo pipefail
+          echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+          source_digest=$(docker buildx imagetools inspect "$IMAGE:$SOURCE_TAG" --format '{{.Manifest.Digest}}')
+          for attempt in {1..5}; do
+            destination_digest=$(docker buildx imagetools inspect "$IMAGE:$DESTINATION_TAG" --format '{{.Manifest.Digest}}' 2>/dev/null || true)
+            if [ "$source_digest" = "$destination_digest" ]; then
+              echo "Verified $IMAGE:$DESTINATION_TAG -> $destination_digest"
+              exit 0
+            fi
+            echo "Digest not available or does not match yet ($attempt/5); retrying..."
+            sleep 5
+          done
+
+          echo "Error: $IMAGE:$DESTINATION_TAG does not match $IMAGE:$SOURCE_TAG."
+          exit 1
+
+  create-rc-tag:
+    name: Create RC Git Tag
+    needs: [resolve-rc, verify-images]
+    runs-on: ubuntu-24.04
+    if: ${{ !inputs.dry_run }}
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Create and push RC tag
+        env:
+          RC_TAG: ${{ inputs.rc_tag }}
+          TARGET_SHA: ${{ needs.resolve-rc.outputs.target_sha }}
+        run: |
+          set -euo pipefail
+          git fetch --force --tags origin
+
+          if git rev-parse --verify "refs/tags/$RC_TAG" >/dev/null 2>&1; then
+            echo "Error: RC tag '$RC_TAG' already exists."
+            exit 1
+          fi
+
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag "$RC_TAG" "$TARGET_SHA"
+          git push origin "refs/tags/$RC_TAG"
+
+          echo "Created and pushed tag $RC_TAG -> $TARGET_SHA"
 
   create-release:
     name: Release
-    needs: [create-rc-tag, retag-images]
+    needs: [resolve-rc, create-rc-tag]
     runs-on: ubuntu-latest
     if: ${{ !inputs.dry_run }}
     permissions:
       contents: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Create GitHub Pre-release with Release Notes
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3
         with:
           tag_name: ${{ inputs.rc_tag }}
           prerelease: true
           generate_release_notes: true
-          target_commitish: ${{ needs.create-rc-tag.outputs.target_sha }}
+          target_commitish: ${{ needs.resolve-rc.outputs.target_sha }}
 
   deploy-test:
     name: Deploy to Test

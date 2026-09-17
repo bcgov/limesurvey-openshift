@@ -86,3 +86,13 @@ jobs:
             ${{ needs.vars.outputs.sha_tag }}
           tag_fallback: dev
           triggers: ('${{ matrix.package }}/') #omit to build everything
+
+  trivy-images:
+    name: Scan Published Images
+    needs: [vars, builds]
+    uses: ./.github/workflows/analysis.yml
+    permissions:
+      packages: read
+      security-events: write
+    with:
+      image_tag: ${{ needs.vars.outputs.sha_tag }}

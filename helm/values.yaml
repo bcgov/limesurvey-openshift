@@ -53,6 +53,7 @@ limesurvey-nginx:
 
 limesurvey-php:
   sysdigteam: false
+  replicaCount: 1
   pvcs:
     - name: limesurvey-tmp
       mountPath: /var/www/html/limesurvey/tmp/
@@ -149,7 +150,7 @@ limesurvey-backup:
   pvcName: limesurvey-upload
   image:
     repository: docker.io/restic/restic
-    tag: "0.17.3"
+    tag: "0.19.1"
   retention:
     keepDaily: 7
     keepWeekly: 4

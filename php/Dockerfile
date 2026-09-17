@@ -1,4 +1,4 @@
-FROM composer:2 as plugin
+FROM composer:2@sha256:5946476338742b200bb9ff88f8be56275ddae4b3949c72305cb0dbf10cfcb760 as plugin
 WORKDIR /opt/
 RUN git clone https://github.com/SondagesPro/limesurvey-oauth2.git AuthOAuth2 \
     && cd /opt/AuthOAuth2 \
@@ -6,10 +6,11 @@ RUN git clone https://github.com/SondagesPro/limesurvey-oauth2.git AuthOAuth2 \
     && composer install \
     && sed -i '/<version>6<\/version>/i <version>7</version>' config.xml
 
-FROM php:8.5-fpm
+FROM php:8.5-fpm@sha256:0dc450d0a0e81ba501973b8e303f5d45af2ed989e08730f597d8fc07fb289efd
 
 ENV ROOT_DIR="/var/www/html"
-ENV RELEASE="7.0.0-RC1+260430.zip"
+ENV RELEASE="7.1.1+260914.zip"
+ENV LIMESURVEY_SHA256="c772b2042cb19fe6aa5c79526885f66d333d2341bba42cc2406da6fef3c9bb0e"
 
 RUN DEBVERSION=$(grep VERSION_ID /etc/os-release | cut -d '"' -f 2 | cut -d '.' -f 1) \
     && curl -sSL -o /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/config/debian/${DEBVERSION}/packages-microsoft-prod.deb \
@@ -79,7 +80,8 @@ RUN chmod +x /usr/local/bin/limesurvey-init.sh
 RUN mkdir -p /var/www/html/
 
 RUN echo "LimeSurvey not found, downloading..." && \
-    curl -L "https://download.limesurvey.org/latest-develop-major/limesurvey${RELEASE}" -o /tmp/limesurvey.zip && \
+    curl --fail --location --silent --show-error "https://download.limesurvey.org/latest-master/limesurvey${RELEASE}" -o /tmp/limesurvey.zip && \
+    echo "${LIMESURVEY_SHA256}  /tmp/limesurvey.zip" | sha256sum -c - && \
     unzip -o /tmp/limesurvey.zip -d "$ROOT_DIR" | pv -lf -s "$(unzip -l /tmp/limesurvey.zip | wc -l)" > /dev/null && \
     rm -f /tmp/limesurvey.zip && \
     find "$ROOT_DIR/limesurvey/editor" -mindepth 1 -maxdepth 1 ! -name 'build' ! -name "index.html" -exec rm -rf {} + && \
