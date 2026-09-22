@@ -1,4 +1,4 @@
-FROM composer:2@sha256:5946476338742b200bb9ff88f8be56275ddae4b3949c72305cb0dbf10cfcb760 as plugin
+FROM composer:2@sha256:a5f59b9fd2faf31218632be4809dc6491761085e8064c31dc3b84378c48c248b as plugin
 WORKDIR /opt/
 RUN git clone https://github.com/SondagesPro/limesurvey-oauth2.git AuthOAuth2 \
     && cd /opt/AuthOAuth2 \
@@ -6,7 +6,7 @@ RUN git clone https://github.com/SondagesPro/limesurvey-oauth2.git AuthOAuth2 \
     && composer install \
     && sed -i '/<version>6<\/version>/i <version>7</version>' config.xml
 
-FROM php:8.5-fpm@sha256:0dc450d0a0e81ba501973b8e303f5d45af2ed989e08730f597d8fc07fb289efd
+FROM php:8.5-fpm@sha256:cb0c75f188ef0a029e9c7f20a473cefac67e1e9fe3d257ed130fec141e95e244
 
 ENV ROOT_DIR="/var/www/html"
 ENV RELEASE="7.1.1+260914.zip"
