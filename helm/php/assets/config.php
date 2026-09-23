@@ -5,13 +5,25 @@ return array(
     'name' => 'LimeSurvey',
     'components' => array(
         'db' => array(
+{{- if eq .Values.database.type "postgresql" }}
+          'connectionString' => 'pgsql:host=${PGHOST};port=${PGPORT};dbname=${PGDATABASE}',
+          'emulatePrepare' => true,
+          'username' => '${PGUSER}',
+          'password' => '${PGPASSWORD}',
+          'charset' => 'utf8',
+          'tablePrefix' => '',
+{{- else if eq .Values.database.type "mssql" }}
           'connectionString' => 'sqlsrv:Server=${DB_HOST},${DB_PORT};Database=${DB_NAME};TrustServerCertificate=True',
           'emulatePrepare' => true,
           'username' => '${DB_USER}',
           'password' => '${DB_PASSWORD}',
           'charset' => 'utf8',
           'tablePrefix' => '',
-          'initSQLs' => array('SET DATEFORMAT ymd;', 'SET QUOTED_IDENTIFIER ON;')),
+          'initSQLs' => array('SET DATEFORMAT ymd;', 'SET QUOTED_IDENTIFIER ON;'),
+{{- else }}
+{{- fail "limesurvey-php.database.type must be either postgresql or mssql" }}
+{{- end }}
+        ),
           'cache' => array(
             'class' => 'CMemCache',
             'useMemcached' => true,

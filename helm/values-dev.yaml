@@ -8,3 +8,9 @@ global:
   vault:
     engine: cd77be-nonprod
     path: "/dev"
+
+limesurvey-php:
+  database:
+    type: postgresql
+    postgresql:
+      secretName: limesurvey-pguser-app-database-user
