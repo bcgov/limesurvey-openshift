@@ -57,7 +57,7 @@ limesurvey-php:
   database:
     type: postgresql
     postgresql:
-      secretName: limesurvey-pguser-app-database-user
+      secretName: limesurvey-pguser-superuser
   pvcs:
     - name: limesurvey-tmp
       mountPath: /var/www/html/limesurvey/tmp/
