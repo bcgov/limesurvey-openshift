@@ -127,7 +127,7 @@ proxy:
   pgBouncer:
     enabled: false
     image: # it's not necessary to specify an image as the images specified in the Crunchy Postgres Operator will be pulled by default
-    replicas: 3
+    replicas: 1
     defaultPoolSize: 40
     maxClientConnections: 100
     poolMode: session # session (default) | transaction | statement
