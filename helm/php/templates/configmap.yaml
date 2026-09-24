@@ -19,4 +19,4 @@ metadata:
 {{ include "php.labels.standard" . | indent 4 }}
 data:
   config.php.tmpl: |
-{{ .Files.Get "assets/config.php" | indent 4 }}
+{{ tpl (.Files.Get "assets/config.php") . | indent 4 }}

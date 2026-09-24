@@ -1,4 +1,8 @@
 ---
+{{- $databaseType := required "limesurvey-php.database.type is required" .Values.database.type -}}
+{{- if not (has $databaseType (list "postgresql" "mssql")) -}}
+{{- fail "limesurvey-php.database.type must be either postgresql or mssql" -}}
+{{- end }}
 kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -25,6 +29,7 @@ spec:
         vault.hashicorp.com/namespace: {{ .Values.global.vault.namespace }}
         vault.hashicorp.com/role: {{ .Values.global.vault.engine }}
         vault.hashicorp.com/auth-path: {{ .Values.global.vault.authPath }}
+        {{- if eq $databaseType "mssql" }}
         vault.hashicorp.com/agent-inject-secret-mssql: {{ .Values.global.vault.engine }}{{ .Values.global.vault.path }}/mssql
         vault.hashicorp.com/agent-inject-template-mssql: |
           {{ `{{- with secret ` }}"{{ .Values.global.vault.engine }}{{ .Values.global.vault.path }}/mssql"{{ ` }}
@@ -32,6 +37,7 @@ spec:
           export {{ $k }}='{{ $v }}'
           {{- end }}
           {{- end }}` }}
+        {{- end }}
         vault.hashicorp.com/agent-inject-secret-limesurvey: {{ .Values.global.vault.engine }}{{ .Values.global.vault.path }}/limesurvey
         vault.hashicorp.com/agent-inject-template-limesurvey: |
           {{ `{{- with secret ` }}"{{ .Values.global.vault.engine }}{{ .Values.global.vault.path }}/limesurvey"{{ ` }}
@@ -70,7 +76,37 @@ spec:
         - name: limesurvey-init
           image: "{{ default .Values.global.image.repository .Values.image.repository }}/{{ default .Chart.Name .Values.image.name }}:{{ default .Values.global.image.tag .Values.image.tag }}"
           command: ["/bin/bash"]
+          {{- if eq $databaseType "postgresql" }}
+          args: [ "-c", "source /vault/secrets/limesurvey && envsubst < /etc/limesurvey/config.php.tmpl > /etc/limesurvey/rendered/config.php && cp /etc/limesurvey/rendered/config.php /var/www/html/limesurvey/application/config/config.php && limesurvey-init.sh" ]
+          env:
+            - name: PGHOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "limesurvey-php.database.postgresql.secretName is required" .Values.database.postgresql.secretName }}
+                  key: host
+            - name: PGPORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.postgresql.secretName }}
+                  key: port
+            - name: PGDATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.postgresql.secretName }}
+                  key: dbname
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.postgresql.secretName }}
+                  key: user
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.postgresql.secretName }}
+                  key: password
+          {{- else }}
           args: [ "-c", "source /vault/secrets/mssql && source /vault/secrets/limesurvey && envsubst < /etc/limesurvey/config.php.tmpl > /etc/limesurvey/rendered/config.php && cp /etc/limesurvey/rendered/config.php /var/www/html/limesurvey/application/config/config.php && limesurvey-init.sh" ]
+          {{- end }}
           volumeMounts:
             - name: config-limesurvey-php
               readOnly: true

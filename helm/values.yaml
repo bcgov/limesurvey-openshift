@@ -54,6 +54,10 @@ limesurvey-nginx:
 limesurvey-php:
   sysdigteam: false
   replicaCount: 1
+  database:
+    type: postgresql
+    postgresql:
+      secretName: limesurvey-pguser-superuser
   pvcs:
     - name: limesurvey-tmp
       mountPath: /var/www/html/limesurvey/tmp/

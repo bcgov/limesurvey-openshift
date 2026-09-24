@@ -45,7 +45,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && pecl install memcached-3.4.0 \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd intl zip \
+    && docker-php-ext-install -j$(nproc) gd intl pdo_pgsql zip \
     && pecl install pdo_sqlsrv \
     && docker-php-ext-enable pdo_sqlsrv \
     && docker-php-ext-enable memcached \
