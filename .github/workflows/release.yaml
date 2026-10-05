@@ -64,7 +64,7 @@ jobs:
           gh api "repos/${GITHUB_REPOSITORY}/git/refs" \
             -f "ref=refs/heads/$branch" -f "sha=$target_sha"
           echo "ref=$branch" >> "$GITHUB_OUTPUT"
-          echo "tag=v$VERSION-${target_sha:0:7}" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION-$GITHUB_RUN_NUMBER" >> "$GITHUB_OUTPUT"
           echo "sha=$target_sha" >> "$GITHUB_OUTPUT"
 
   builds:
