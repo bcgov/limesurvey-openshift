@@ -5,8 +5,20 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version (e.g. 1.2.3); branch off main'
+        description: 'Release version (e.g. 1.2.3)'
         required: true
+        type: string
+      source_type:
+        description: 'Branch from current main or a commit in main history'
+        required: true
+        type: choice
+        default: main
+        options:
+          - main
+          - commit
+      source_commit:
+        description: 'Commit SHA (required when source_type is commit)'
+        required: false
         type: string
 
 jobs:
@@ -19,17 +31,42 @@ jobs:
     outputs:
       ref: ${{ steps.create.outputs.ref }}
       tag: ${{ steps.create.outputs.tag }}
+      sha: ${{ steps.create.outputs.sha }}
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
       - name: Validate and create branch
         id: create
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ inputs.version }}
+          SOURCE_TYPE: ${{ inputs.source_type }}
+          SOURCE_COMMIT: ${{ inputs.source_commit }}
         run: |
           set -euo pipefail
           if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Version must be x.y.z (e.g. 1.2.3)." >&2
             exit 1
+          fi
+          if [[ "$SOURCE_TYPE" == main ]]; then
+            if [[ -n "$SOURCE_COMMIT" ]]; then
+              echo "Leave source_commit empty when branching from main." >&2
+              exit 1
+            fi
+            target_sha=$(git rev-parse HEAD)
+          else
+            if [[ ! "$SOURCE_COMMIT" =~ ^[0-9a-fA-F]{7,40}$ ]]; then
+              echo "Enter a 7-40 character commit SHA from main." >&2
+              exit 1
+            fi
+            target_sha=$(git rev-parse --verify "${SOURCE_COMMIT}^{commit}")
+            if ! git merge-base --is-ancestor "$target_sha" HEAD; then
+              echo "Commit $target_sha is not in main history." >&2
+              exit 1
+            fi
           fi
           branch="release/v$VERSION"
           if gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/$branch" >/dev/null 2>&1; then
@@ -37,9 +74,10 @@ jobs:
             exit 1
           fi
           gh api "repos/${GITHUB_REPOSITORY}/git/refs" \
-            -f "ref=refs/heads/$branch" -f "sha=$GITHUB_SHA"
+            -f "ref=refs/heads/$branch" -f "sha=$target_sha"
           echo "ref=$branch" >> "$GITHUB_OUTPUT"
-          echo "tag=v$VERSION-${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION-${target_sha:0:7}" >> "$GITHUB_OUTPUT"
+          echo "sha=$target_sha" >> "$GITHUB_OUTPUT"
 
   builds:
     name: Build release (${{ matrix.package }})
@@ -59,7 +97,7 @@ jobs:
           persist-credentials: false
       - name: Verify release source
         env:
-          EXPECTED_SHA: ${{ github.sha }}
+          EXPECTED_SHA: ${{ needs.branch.outputs.sha }}
         run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
       - uses: docker/login-action@v4
         with:
@@ -87,11 +125,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ needs.branch.outputs.tag }}
+          RELEASE_SHA: ${{ needs.branch.outputs.sha }}
           VERSION: ${{ inputs.version }}
         run: |
           gh release create "$RELEASE_TAG" \
             --repo "$GITHUB_REPOSITORY" \
-            --target "$GITHUB_SHA" \
+            --target "$RELEASE_SHA" \
             --prerelease \
             --generate-notes \
             --title "v$VERSION"
