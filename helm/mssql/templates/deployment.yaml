@@ -55,6 +55,6 @@ spec:
           persistentVolumeClaim:
             claimName: {{ .Chart.Name }}-pvc
   strategy:
-    type: Recreate
+    type: RollingUpdate
   revisionHistoryLimit: 3
   progressDeadlineSeconds: 600
