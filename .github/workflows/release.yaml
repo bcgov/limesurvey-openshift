@@ -75,3 +75,23 @@ jobs:
           tags: ghcr.io/${{ github.repository }}/limesurvey-${{ matrix.package }}:${{ needs.branch.outputs.tag }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/limesurvey-${{ matrix.package }}:buildcache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/limesurvey-${{ matrix.package }}:buildcache,mode=max
+
+  prerelease:
+    name: Publish pre-release
+    needs: [branch, builds]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Create release tag and pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.branch.outputs.tag }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          gh release create "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --generate-notes \
+            --title "v$VERSION"
