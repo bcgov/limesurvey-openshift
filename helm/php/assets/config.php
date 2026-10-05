@@ -4,6 +4,21 @@
 return array(
     'name' => 'LimeSurvey',
     'components' => array(
+{{- if eq .Values.database.type "postgresql" }}
+        'session' => array(
+            'class' => 'application.core.web.DbHttpSession',
+            'connectionID' => 'db',
+            'sessionTableName' => '{{ "{{sessions}}" }}',
+            'autoCreateSessionTable' => false,
+        ),
+        'db' => array(
+          'connectionString' => 'pgsql:host=${PGHOST};port=${PGPORT};dbname=${PGDATABASE}',
+          'emulatePrepare' => true,
+          'username' => '${PGUSER}',
+          'password' => '${PGPASSWORD}',
+          'charset' => 'utf8',
+          'tablePrefix' => '',
+{{- else if eq .Values.database.type "mssql" }}
         'db' => array(
           'connectionString' => 'sqlsrv:Server=${DB_HOST},${DB_PORT};Database=${DB_NAME};TrustServerCertificate=True',
           'emulatePrepare' => true,
@@ -11,7 +26,11 @@ return array(
           'password' => '${DB_PASSWORD}',
           'charset' => 'utf8',
           'tablePrefix' => '',
-          'initSQLs' => array('SET DATEFORMAT ymd;', 'SET QUOTED_IDENTIFIER ON;')),
+          'initSQLs' => array('SET DATEFORMAT ymd;', 'SET QUOTED_IDENTIFIER ON;'),
+{{- else }}
+{{- fail "limesurvey-php.database.type must be either postgresql or mssql" }}
+{{- end }}
+        ),
           'cache' => array(
             'class' => 'CMemCache',
             'useMemcached' => true,
@@ -39,6 +58,7 @@ return array(
         'debug' => 0,
         'debugsql' => 0,
         'force_ssl' => true,
+        'allowedHosts' => array('{{ .Values.global.host }}'),
         'language' => 'en',
         'sitename' => 'BC Gov Survey',
         'updatable' => false,

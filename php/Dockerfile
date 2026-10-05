@@ -1,4 +1,4 @@
-FROM composer:2@sha256:5946476338742b200bb9ff88f8be56275ddae4b3949c72305cb0dbf10cfcb760 as plugin
+FROM composer:2@sha256:5946476338742b200bb9ff88f8be56275ddae4b3949c72305cb0dbf10cfcb760 AS plugin
 WORKDIR /opt/
 RUN git clone https://github.com/SondagesPro/limesurvey-oauth2.git AuthOAuth2 \
     && cd /opt/AuthOAuth2 \
@@ -45,7 +45,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && pecl install memcached-3.4.0 \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd intl zip \
+    && docker-php-ext-install -j$(nproc) gd intl pdo_pgsql zip \
     && pecl install pdo_sqlsrv \
     && docker-php-ext-enable pdo_sqlsrv \
     && docker-php-ext-enable memcached \
@@ -67,15 +67,14 @@ RUN apt-get update \
 # Add debugging tools into builds if enabled
 ARG DEBUG_BUILD=false
 
-RUN if [[ ${DEBUG_BUILD} = true ]]; then \
+RUN if [ "${DEBUG_BUILD}" = "true" ]; then \
         apt update && apt-get install --no-install-recommends -y jq vim procps iputils-ping less \
         && pecl install xdebug \
         && docker-php-ext-enable xdebug; \
     fi
 
 # Copy the LimeSurvey download script into the image
-COPY limesurvey-init.sh /usr/local/bin/limesurvey-init.sh
-RUN chmod +x /usr/local/bin/limesurvey-init.sh
+COPY --chmod=0755 limesurvey-init.sh /usr/local/bin/limesurvey-init.sh
 
 RUN mkdir -p /var/www/html/
 

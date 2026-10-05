@@ -1,0 +1,23 @@
+crunchyImage: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-postgres:ubi9-18.1-2547
+
+instances:
+  dataVolumeClaimSpec:
+    storage: 10Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    memory: 6Gi
+
+# If we need to restore the cluster from a backup, we need to set the following values
+# assuming restore from repo2 (s3), adjust as needed if your S3 repo is different.
+dataSource:
+  s3Path: "/datasource-s3-path"
+
+pgBackRest:
+  repos:
+    volume:
+      storage: 10Gi
+  s3:
+    bucket: "ls-prod-database-backups"
+    s3Path: "/habackup"

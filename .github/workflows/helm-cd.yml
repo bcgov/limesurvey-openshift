@@ -100,7 +100,6 @@ jobs:
       - name: Deploy Helm chart
         run: |
           helm upgrade --namespace ${{ secrets.OPENSHIFT_NAMESPACE }} --install limesurvey ./helm \
-            --atomic \
             --wait \
             --timeout 10m \
             --values ./helm/values.yaml \

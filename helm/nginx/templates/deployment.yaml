@@ -19,6 +19,8 @@ spec:
     metadata:
       labels: 
         app.kubernetes.io/name: {{ .Chart.Name | quote }}
+      annotations:
+        checksum/nginx-config: {{ .Files.Get "assets/default.conf" | sha256sum }}
     spec:
       volumes:
         {{- range $volume := .Values.volumes }}

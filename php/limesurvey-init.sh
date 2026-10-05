@@ -44,7 +44,6 @@ print_step "Checking for LimeSurvey installation..."
   sed -i "s|^\(\$config\['siteadminemail'\]\s*=\s*\).*|\1'$ADMIN_EMAIL';|" "$CONFIG_FILE"
   sed -i "s|^\(\$config\['siteadminbounce'\]\s*=\s*\).*|\1'$ADMIN_EMAIL';|" "$CONFIG_FILE"
   sed -i "s|^\(\$config\['siteadminname'\]\s*=\s*\).*|\1'$ADMIN_FULLNAME';|" "$CONFIG_FILE"
-fi
 
 print_step "Email configuration updated in $CONFIG_FILE."
 
@@ -66,12 +65,18 @@ TABLES_EXIST=$(php -r "
     \$pdo = new PDO(\$db['connectionString'], \$db['username'], \$db['password']);
     \$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
-    // Check if tables already exist
-    \$result = \$pdo->query(\"SELECT COUNT(*) FROM information_schema.tables WHERE table_type='BASE TABLE'\");
-    \$count = \$result->fetchColumn();
-    echo (\$count > 0) ? 'true' : 'empty';
+    // LimeSurvey considers the database installed when its DBVersion setting exists.
+    \$table = \$pdo->query(\"SELECT COUNT(*) FROM information_schema.tables WHERE table_name='settings_global'\");
+    if ((int) \$table->fetchColumn() === 0) {
+      echo 'empty';
+      exit;
+    }
+
+    \$version = \$pdo->query(\"SELECT stg_value FROM settings_global WHERE stg_name='DBVersion'\")->fetchColumn();
+    echo (\$version !== false && \$version !== '') ? 'true' : 'empty';
   } catch (Exception \$e) {
     // Return 'error' instead of 'empty' so we don't try to install against a broken connection
+    fwrite(STDERR, 'Database check failed: ' . \$e->getMessage() . PHP_EOL);
     echo 'error';
   }
 " || echo 'error')
@@ -95,7 +100,6 @@ TABLES_EXIST=$(php -r "
     echo "Error checking database tables. Output was: $TABLES_EXIST"
     exit 1
   fi
-fi
 
 print_step "Initial setup tasks completed."
 echo "LimeSurvey is ready to launch."
