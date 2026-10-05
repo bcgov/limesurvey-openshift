@@ -1,4 +1,4 @@
-FROM composer:2@sha256:5946476338742b200bb9ff88f8be56275ddae4b3949c72305cb0dbf10cfcb760 as plugin
+FROM composer:2@sha256:5946476338742b200bb9ff88f8be56275ddae4b3949c72305cb0dbf10cfcb760 AS plugin
 WORKDIR /opt/
 RUN git clone https://github.com/SondagesPro/limesurvey-oauth2.git AuthOAuth2 \
     && cd /opt/AuthOAuth2 \
