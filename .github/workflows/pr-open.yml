@@ -17,7 +17,7 @@ jobs:
     env:
       DOMAIN: apps.silver.devops.gov.bc.ca
       PREFIX: ${{ github.event.repository.name }}-${{ github.event.number }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     permissions:
       pull-requests: write
     timeout-minutes: 1
@@ -30,41 +30,13 @@ jobs:
 
             Thanks for the PR!
 
-            After merge, new images are deployed and promoted to DEV:
-            - [DEV Homepage](https://limesurvey-dev.${{ env.DOMAIN }})
+            PR images are available as `pr-${{ github.event.pull_request.number }}` for manual deployment.
 
-
-  # Get PR number for merge queues, otherwise jusr use github.event.nuber
-  vars:
-    name: Set Variables
-    outputs:
-      pr: ${{ steps.pr.outputs.pr }}
-      branch_tag: ${{ steps.tags.outputs.branch_tag }}
-      sha_tag: ${{ steps.tags.outputs.sha_tag }}
-    runs-on: ubuntu-24.04
-    steps:
-      - name: PR Number
-        id: pr
-        uses: bcgov/action-get-pr@28b0adf8e4d40720d41f9c87356ce24b0a4bd6af #v0.3.1
-      - name: Image Tags
-        id: tags
-        env:
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          set -euo pipefail
-          branch=$(echo "$HEAD_REF" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9_.-]+/-/g; s/^-+//; s/-+$//; s/-+/-/g' | cut -c1-100)
-          if [ -z "$branch" ]; then
-            branch="pr-${{ steps.pr.outputs.pr }}"
-          fi
-          echo "branch_tag=branch-$branch" >> "$GITHUB_OUTPUT"
-          echo "sha_tag=sha-${HEAD_SHA:0:7}" >> "$GITHUB_OUTPUT"
 
   # https://github.com/bcgov/action-builder-ghcr
   builds:
     name: Builds
-    needs: [vars]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
@@ -80,20 +52,15 @@ jobs:
           package: 'limesurvey-${{ matrix.package }}'
           build_context: ${{ matrix.package }}
           build_file: '${{ matrix.package }}/Dockerfile'
-          sbom: false # speeds up build time by 30s
-          tags: |
-            pr-${{ needs.vars.outputs.pr }}
-            ${{ needs.vars.outputs.branch_tag }}
-            ${{ needs.vars.outputs.sha_tag }}
-          tag_fallback: dev
-          triggers: ('${{ matrix.package }}/') #omit to build everything
+          sbom: 'false'
+          tags: pr-${{ github.event.pull_request.number }}
 
   trivy-images:
     name: Scan Published Images
-    needs: [vars, builds]
+    needs: [builds]
     uses: ./.github/workflows/analysis.yml
     permissions:
       packages: read
       security-events: write
     with:
-      image_tag: ${{ needs.vars.outputs.sha_tag }}
+      image_tag: pr-${{ github.event.pull_request.number }}

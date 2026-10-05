@@ -22,7 +22,7 @@ concurrency:
 jobs:
   helm-validate:
     if: inputs.image_tag == ''
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     name: Validate Helm Templates
     steps:
       - name: Checkout code
@@ -44,7 +44,7 @@ jobs:
   codeql:
     name: CodeQL
     if: inputs.image_tag == '' && (! github.event.pull_request.draft)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -66,7 +66,7 @@ jobs:
     if: inputs.image_tag == '' && (! github.event.pull_request.draft)
     permissions:
       security-events: write
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -92,7 +92,7 @@ jobs:
   trivy-images:
     name: Scan Published Images
     if: inputs.image_tag != ''
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     permissions:
       packages: read
       security-events: write
@@ -122,7 +122,7 @@ jobs:
     name: Results
     needs: [helm-validate, codeql, trivy, trivy-images]
     if: always() && inputs.image_tag == ''
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 1
     steps:
       - name: Check Results
