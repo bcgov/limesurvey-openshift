@@ -4,8 +4,14 @@
 return array(
     'name' => 'LimeSurvey',
     'components' => array(
-        'db' => array(
 {{- if eq .Values.database.type "postgresql" }}
+        'session' => array(
+            'class' => 'application.core.web.DbHttpSession',
+            'connectionID' => 'db',
+            'sessionTableName' => '{{ "{{sessions}}" }}',
+            'autoCreateSessionTable' => false,
+        ),
+        'db' => array(
           'connectionString' => 'pgsql:host=${PGHOST};port=${PGPORT};dbname=${PGDATABASE}',
           'emulatePrepare' => true,
           'username' => '${PGUSER}',
@@ -13,6 +19,7 @@ return array(
           'charset' => 'utf8',
           'tablePrefix' => '',
 {{- else if eq .Values.database.type "mssql" }}
+        'db' => array(
           'connectionString' => 'sqlsrv:Server=${DB_HOST},${DB_PORT};Database=${DB_NAME};TrustServerCertificate=True',
           'emulatePrepare' => true,
           'username' => '${DB_USER}',
@@ -51,6 +58,7 @@ return array(
         'debug' => 0,
         'debugsql' => 0,
         'force_ssl' => true,
+        'allowedHosts' => array('{{ .Values.global.host }}'),
         'language' => 'en',
         'sitename' => 'BC Gov Survey',
         'updatable' => false,
