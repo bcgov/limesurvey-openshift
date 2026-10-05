@@ -1,65 +1,42 @@
-name: Deploy to Dev - PR Merge
-run-name: "Deploy to DEV - PR Merge - ${{ github.event.head_commit.message }}"
+name: Build Main Images
+run-name: "Build main-${{ github.sha }}"
 
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - '*.md'
-      - '.github/**'
-      - '!.github/workflows/**'
-
-concurrency:
-  # Do not interrupt previous workflows
-  group: ${{ github.workflow }}
-  cancel-in-progress: true
-
-permissions: {}
 
 jobs:
-  vars:
-    name: Set Variables
-    outputs:
-      pr: ${{ steps.pr.outputs.pr }}
-    runs-on: ubuntu-24.04
-    timeout-minutes: 1
-    steps:
-      # Get PR number for squash merges to main
-      - name: Get PR Number From Event
-        if: github.event_name == 'push'
-        id: pr_no
-        uses: bcgov/action-get-pr@28b0adf8e4d40720d41f9c87356ce24b0a4bd6af #v0.3.1
-      - name: PR Number
-        id: pr
-        run: echo pr=${{ steps.pr_no.outputs.pr }} >> $GITHUB_OUTPUT
-
-  deploy-dev:
-    name: Deploy (DEV)
-    uses: ./.github/workflows/helm-cd.yml
-    secrets: inherit
-    needs: [vars]
+  builds:
+    name: Build (${{ matrix.package }})
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-    with:
-      environment: dev
-      tag: pr-${{ needs.vars.outputs.pr }}
-
-  tag-sha:
-    name: Tag Images with Commit SHA
-    needs: [vars, deploy-dev]
-    runs-on: ubuntu-24.04
-    permissions:
-      packages: write
+      id-token: write
+      attestations: write
     strategy:
       matrix:
         package: [php, nginx]
+    timeout-minutes: 10
     steps:
-      - id: sha
-        run: echo "short=sha-${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
-      - uses: shrink/actions-docker-registry-tag@e6aaef25c595b6e0edd18bf4c7dbfea3abd43299 # v5
+      - name: Set image tag
+        id: tag
+        run: echo "value=main-${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
-          repository: ${{ github.repository }}/limesurvey-${{ matrix.package }}
-          target: pr-${{ needs.vars.outputs.pr }}
-          tags: ${{ steps.sha.outputs.short }}
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/build-push-action@v7
+        with:
+          context: ./${{ matrix.package }}
+          file: ./${{ matrix.package }}/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository }}/limesurvey-${{ matrix.package }}:${{ steps.tag.outputs.value }}
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/limesurvey-${{ matrix.package }}:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/limesurvey-${{ matrix.package }}:buildcache,mode=max
