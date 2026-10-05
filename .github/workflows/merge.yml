@@ -21,7 +21,7 @@ jobs:
     steps:
       - name: Set image tag
         id: tag
-        run: echo "value=main-${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
+        run: echo "value=main-$GITHUB_RUN_NUMBER" >> "$GITHUB_OUTPUT"
       - uses: bcgov/actions/builder@4026bfd276b8a5839029106099b13edfb594b2c3 # v0.8.0
         with:
           package: 'limesurvey-${{ matrix.package }}'
