@@ -8,17 +8,10 @@ on:
         description: 'Release version (e.g. 1.2.3)'
         required: true
         type: string
-      source_type:
-        description: 'Branch from current main or a commit in main history'
+      source:
+        description: 'latest or a commit SHA from main'
         required: true
-        type: choice
-        default: main
-        options:
-          - main
-          - commit
-      source_commit:
-        description: 'Commit SHA (required when source_type is commit)'
-        required: false
+        default: latest
         type: string
 
 jobs:
@@ -43,26 +36,21 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ inputs.version }}
-          SOURCE_TYPE: ${{ inputs.source_type }}
-          SOURCE_COMMIT: ${{ inputs.source_commit }}
+          SOURCE: ${{ inputs.source }}
         run: |
           set -euo pipefail
           if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Version must be x.y.z (e.g. 1.2.3)." >&2
             exit 1
           fi
-          if [[ "$SOURCE_TYPE" == main ]]; then
-            if [[ -n "$SOURCE_COMMIT" ]]; then
-              echo "Leave source_commit empty when branching from main." >&2
-              exit 1
-            fi
+          if [[ "$SOURCE" == latest ]]; then
             target_sha=$(git rev-parse HEAD)
           else
-            if [[ ! "$SOURCE_COMMIT" =~ ^[0-9a-fA-F]{7,40}$ ]]; then
-              echo "Enter a 7-40 character commit SHA from main." >&2
+            if [[ ! "$SOURCE" =~ ^[0-9a-fA-F]{7,40}$ ]]; then
+              echo "Enter latest or a 7-40 character commit SHA from main." >&2
               exit 1
             fi
-            target_sha=$(git rev-parse --verify "${SOURCE_COMMIT}^{commit}")
+            target_sha=$(git rev-parse --verify "${SOURCE}^{commit}")
             if ! git merge-base --is-ancestor "$target_sha" HEAD; then
               echo "Commit $target_sha is not in main history." >&2
               exit 1

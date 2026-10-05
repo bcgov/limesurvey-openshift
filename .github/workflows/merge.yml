@@ -1,5 +1,5 @@
 name: Build Main Images
-run-name: "Build main-${{ github.sha }}"
+run-name: "Build main images"
 
 on:
   push:
@@ -40,3 +40,8 @@ jobs:
           tags: ghcr.io/${{ github.repository }}/limesurvey-${{ matrix.package }}:${{ steps.tag.outputs.value }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/limesurvey-${{ matrix.package }}:buildcache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/limesurvey-${{ matrix.package }}:buildcache,mode=max
+      - name: Show image tag
+        env:
+          IMAGE_TAG: ${{ steps.tag.outputs.value }}
+        run: |
+          echo "${{ matrix.package }} image tag: $IMAGE_TAG" >> "$GITHUB_STEP_SUMMARY"
