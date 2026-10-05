@@ -87,7 +87,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4
         with:
           sarif_file: "trivy-repository.sarif"
-          category: "trivy-repository"
+          category: ".github/workflows/analysis.yml:trivy"
 
   trivy-images:
     name: Scan Published Images
