@@ -80,6 +80,7 @@ jobs:
           package: 'limesurvey-${{ matrix.package }}'
           build_context: ${{ matrix.package }}
           build_file: '${{ matrix.package }}/Dockerfile'
+          sbom: false # speeds up build time by 30s
           tags: |
             pr-${{ needs.vars.outputs.pr }}
             ${{ needs.vars.outputs.branch_tag }}

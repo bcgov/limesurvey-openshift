@@ -67,15 +67,14 @@ RUN apt-get update \
 # Add debugging tools into builds if enabled
 ARG DEBUG_BUILD=false
 
-RUN if [[ ${DEBUG_BUILD} = true ]]; then \
+RUN if [ "${DEBUG_BUILD}" = "true" ]; then \
         apt update && apt-get install --no-install-recommends -y jq vim procps iputils-ping less \
         && pecl install xdebug \
         && docker-php-ext-enable xdebug; \
     fi
 
 # Copy the LimeSurvey download script into the image
-COPY limesurvey-init.sh /usr/local/bin/limesurvey-init.sh
-RUN chmod +x /usr/local/bin/limesurvey-init.sh
+COPY --chmod=0755 limesurvey-init.sh /usr/local/bin/limesurvey-init.sh
 
 RUN mkdir -p /var/www/html/
 
