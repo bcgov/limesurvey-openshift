@@ -6,7 +6,7 @@ global:
   image:
     repository: ghcr.io/bcgov/limesurvey-openshift
     tag: latest
-  host: "limesurvey-dev.apps.silver.devops.gov.bc.ca"
+  host: "limesurvey.apps.silver.devops.gov.bc.ca"
   vault:
     enabled: true
     namespace: platform-services
@@ -23,6 +23,11 @@ limesurvey-nginx:
     type: persistentVolumeClaim
     mountPath: /var/www/html/limesurvey/tmp/
     subPath: ""
+  - name: limesurvey-upload
+    type: persistentVolumeClaim
+    mountPath: /var/www/html/limesurvey/upload/
+    subPath: ""
+    readOnly: true
   - name: limesurvey-accesslogs
     type: persistentVolumeClaim
     mountPath: /logs
@@ -57,7 +62,7 @@ limesurvey-php:
   database:
     type: postgresql
     postgresql:
-      secretName: limesurvey-pguser-superuser
+      secretName: limesurvey-pguser-app-database-user
   pvcs:
     - name: limesurvey-tmp
       mountPath: /var/www/html/limesurvey/tmp/

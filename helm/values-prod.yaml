@@ -2,7 +2,7 @@
 global:
   licensePlate: cd77be
   sectionTag: -prod
-  host: "limesurvey-prod.apps.silver.devops.gov.bc.ca"
+  host: "survey.engage.gov.bc.ca"
   image:
     tag: prod
   vault:
@@ -10,7 +10,7 @@ global:
     path: "" # No specific path for production, use root
 
 limesurvey-nginx:
-  replicaCount: 1
+  replicaCount: 3
 
 limesurvey-php:
-  replicaCount: 1
+  replicaCount: 3

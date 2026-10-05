@@ -9,7 +9,11 @@ global:
     engine: cd77be-nonprod
     path: "/dev"
 
+limesurvey-nginx:
+  replicaCount: 3
+
 limesurvey-php:
+  replicaCount: 3
   database:
     type: postgresql
     postgresql:
