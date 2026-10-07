@@ -1,5 +1,5 @@
-name: Create Release Branch and Build Images
-run-name: "Release v${{ inputs.version }}"
+name: Create Release Branch
+run-name: "Release ${{ inputs.version && format('v{0}', inputs.version) || github.ref_name }}"
 
 on:
   workflow_dispatch:
@@ -16,15 +16,12 @@ on:
 
 jobs:
   branch:
-    name: Create release branch
+    name: Resolve release source
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
+      actions: write
       contents: write
-    outputs:
-      ref: ${{ steps.create.outputs.ref }}
-      tag: ${{ steps.create.outputs.tag }}
-      sha: ${{ steps.create.outputs.sha }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -32,7 +29,6 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Validate and create branch
-        id: create
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ inputs.version }}
@@ -63,62 +59,4 @@ jobs:
           fi
           gh api "repos/${GITHUB_REPOSITORY}/git/refs" \
             -f "ref=refs/heads/$branch" -f "sha=$target_sha"
-          echo "ref=$branch" >> "$GITHUB_OUTPUT"
-          echo "tag=v$VERSION-$GITHUB_RUN_NUMBER" >> "$GITHUB_OUTPUT"
-          echo "sha=$target_sha" >> "$GITHUB_OUTPUT"
-
-  builds:
-    name: Build release (${{ matrix.package }})
-    needs: [branch]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    strategy:
-      matrix:
-        package: [php, nginx]
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ needs.branch.outputs.ref }}
-          persist-credentials: false
-      - name: Verify release source
-        env:
-          EXPECTED_SHA: ${{ needs.branch.outputs.sha }}
-        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
-      - uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
-      - uses: docker/setup-buildx-action@v4
-      - uses: docker/build-push-action@v7
-        with:
-          context: ./${{ matrix.package }}
-          file: ./${{ matrix.package }}/Dockerfile
-          push: true
-          tags: ghcr.io/${{ github.repository }}/limesurvey-${{ matrix.package }}:${{ needs.branch.outputs.tag }}
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/limesurvey-${{ matrix.package }}:buildcache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/limesurvey-${{ matrix.package }}:buildcache,mode=max
-
-  prerelease:
-    name: Publish pre-release
-    needs: [branch, builds]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Create release tag and pre-release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ needs.branch.outputs.tag }}
-          RELEASE_SHA: ${{ needs.branch.outputs.sha }}
-          VERSION: ${{ inputs.version }}
-        run: |
-          gh release create "$RELEASE_TAG" \
-            --repo "$GITHUB_REPOSITORY" \
-            --target "$RELEASE_SHA" \
-            --prerelease \
-            --generate-notes \
-            --title "v$VERSION"
+          gh workflow run merge.yml --ref "$branch"
