@@ -1,11 +1,11 @@
-crunchyImage: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-postgres:ubi9-18.1-2547
+crunchyImage: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-postgres:ubi9-18.1-20260910
 
 instances:
   dataVolumeClaimSpec:
     storage: 2Gi
   requests:
     cpu: 200m
-    memory: 1Gi
+    memory: 500m
   limits:
     memory: 1Gi
 
