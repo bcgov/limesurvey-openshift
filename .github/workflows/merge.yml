@@ -1,9 +1,10 @@
-name: Build Main Images
-run-name: "Build main images"
+name: Build Images
+run-name: "Build images for ${{ github.ref_name }}"
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'release/v*']
+  workflow_dispatch:
 
 jobs:
   builds:
@@ -21,7 +22,18 @@ jobs:
     steps:
       - name: Set image tag
         id: tag
-        run: echo "value=main-$GITHUB_RUN_NUMBER" >> "$GITHUB_OUTPUT"
+        run: |
+          if [[ "$GITHUB_REF_NAME" == main ]]; then
+            tag="main-$GITHUB_RUN_NUMBER"
+          else
+            version="${GITHUB_REF_NAME#release/v}"
+            if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "Release branch must be release/vX.Y.Z." >&2
+              exit 1
+            fi
+            tag="v$version-$GITHUB_RUN_NUMBER"
+          fi
+          echo "value=$tag" >> "$GITHUB_OUTPUT"
       - uses: bcgov/actions/builder@4026bfd276b8a5839029106099b13edfb594b2c3 # v0.8.0
         with:
           package: 'limesurvey-${{ matrix.package }}'
@@ -31,3 +43,23 @@ jobs:
           tags: ${{ steps.tag.outputs.value }}
       - name: Verify built commit
         run: test "$(git -C .builder-context rev-parse HEAD)" = "$GITHUB_SHA"
+
+  prerelease:
+    name: Publish pre-release
+    if: startsWith(github.ref, 'refs/heads/release/v')
+    needs: [builds]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Create release tag and pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#release/v}"
+          gh release create "v$version-$GITHUB_RUN_NUMBER" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --generate-notes \
+            --title "v$version"
