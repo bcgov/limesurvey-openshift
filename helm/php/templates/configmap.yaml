@@ -9,6 +9,8 @@ metadata:
 data:
   php.ini: |
 {{ .Files.Get "assets/php.ini" | indent 4 }}
+  fpm-access.conf: |
+{{ .Files.Get "assets/fpm-access.conf" | indent 4 }}
 ---
 kind: ConfigMap
 apiVersion: v1
