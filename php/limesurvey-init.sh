@@ -35,7 +35,7 @@ echo "=== Initializing Limesurvey ==="
 print_step "Checking for LimeSurvey installation..."
 
   CONFIG_FILE="$ROOT_DIR/limesurvey/application/config/email.php"
-  mkdir -p "$ROOT_DIR/limesurvey/tmp/runtime" "$ROOT_DIR/limesurvey/tmp/assets" "$ROOT_DIR/limesurvey/tmp/files"
+  mkdir -p "$ROOT_DIR/limesurvey/tmp/runtime" "$ROOT_DIR/limesurvey/tmp/assets" "$ROOT_DIR/limesurvey/tmp/files" "$ROOT_DIR/limesurvey/tmp/upload"
   mkdir -p "$ROOT_DIR/limesurvey/upload/admintheme" "$ROOT_DIR/limesurvey/upload/global" "$ROOT_DIR/limesurvey/upload/labels" "$ROOT_DIR/limesurvey/upload/plugins" "$ROOT_DIR/limesurvey/upload/surveys" "$ROOT_DIR/limesurvey/upload/themes" "$ROOT_DIR/limesurvey/upload/themes/survey" "$ROOT_DIR/limesurvey/upload/twig"
 
   ADMIN_FULLNAME="${ADMIN_FULLNAME:-Administrator}"

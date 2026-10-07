@@ -2,7 +2,7 @@
 global:
   licensePlate: cd77be
   sectionTag: -prod
-  host: "survey.engage.gov.bc.ca"
+  host: "limesurvey-prod.apps.silver.devops.gov.bc.ca"
   image:
     tag: prod
   vault:
@@ -11,6 +11,11 @@ global:
 
 limesurvey-nginx:
   replicaCount: 3
+  ingress:
+    url: "survey.engage.gov.bc.ca"
+    tls:
+      enabled: true
+      secret: limesurvey-ingress-tls
 
 limesurvey-php:
   replicaCount: 3

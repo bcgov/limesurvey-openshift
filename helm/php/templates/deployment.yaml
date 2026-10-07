@@ -24,6 +24,7 @@ spec:
       annotations:
         checksum/application-config: {{ tpl (.Files.Get "assets/config.php") . | sha256sum }}
         checksum/php-config: {{ .Files.Get "assets/php.ini" | sha256sum }}
+        checksum/fpm-access-config: {{ .Files.Get "assets/fpm-access.conf" | sha256sum }}
         {{- if .Values.global.vault.enabled }}
         vault.hashicorp.com/agent-inject: 'true'
         vault.hashicorp.com/agent-init-first: 'true'
@@ -70,7 +71,9 @@ spec:
             name: config-limesurvey-php   
             items:
               - key: php.ini
-                path: php.ini       
+                path: php.ini
+              - key: fpm-access.conf
+                path: fpm-access.conf
       {{- if .Values.global.vault.serviceAccount }}
       serviceAccountName: {{ .Values.global.vault.serviceAccount }}
       {{- end }}
@@ -162,6 +165,10 @@ spec:
               readOnly: true
               mountPath: "/usr/local/etc/php/php.ini"
               subPath: php.ini
+            - name: config-limesurvey-php
+              readOnly: true
+              mountPath: "/usr/local/etc/php-fpm.d/zz-remote-addr.conf"
+              subPath: fpm-access.conf
             - name: config-rendered
               readOnly: true
               mountPath: "/var/www/html/limesurvey/application/config/config.php"
