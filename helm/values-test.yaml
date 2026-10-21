@@ -14,3 +14,7 @@ limesurvey-nginx:
 
 limesurvey-php:
   replicaCount: 1
+  database:
+    type: postgresql
+    postgresql:
+      secretName: limesurvey-pguser-app-database-user

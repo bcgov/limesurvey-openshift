@@ -3,6 +3,7 @@ global:
   licensePlate: cd77be
   sectionTag: -prod
   host: "limesurvey-prod.apps.silver.devops.gov.bc.ca"
+  ingressHost: &ingressHost "survey.engage.gov.bc.ca"
   image:
     tag: prod
   vault:
@@ -12,10 +13,14 @@ global:
 limesurvey-nginx:
   replicaCount: 3
   ingress:
-    url: "survey.engage.gov.bc.ca"
+    host: *ingressHost
     tls:
       enabled: true
       secret: limesurvey-ingress-tls
 
 limesurvey-php:
   replicaCount: 3
+  database:
+    type: postgresql
+    postgresql:
+      secretName: limesurvey-pguser-app-database-user
