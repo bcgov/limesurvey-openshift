@@ -1,5 +1,5 @@
 {{- $ingress := .Values.ingress | default dict }}
-{{- if $ingress.url }}
+{{- if $ingress.host }}
 {{- $tls := $ingress.tls | default dict }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -13,11 +13,11 @@ spec:
   {{- if $tls.enabled }}
   tls:
     - hosts:
-        - {{ $ingress.url | quote }}
+        - {{ $ingress.host | quote }}
       secretName: {{ required "limesurvey-nginx.ingress.tls.secret is required when ingress.tls.enabled is true" $tls.secret | quote }}
   {{- end }}
   rules:
-    - host: {{ $ingress.url | quote }}
+    - host: {{ $ingress.host | quote }}
       http:
         paths:
           - path: /
