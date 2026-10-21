@@ -58,7 +58,11 @@ return array(
         'debug' => 0,
         'debugsql' => 0,
         'force_ssl' => true,
-        'allowedHosts' => array('{{ .Values.global.host }}'),
+        'allowedHosts' => array(
+      {{- range compact (list .Values.global.host .Values.global.ingressHost) }}
+            {{ . | quote }},
+      {{- end }}
+        ),
         'language' => 'en',
         'sitename' => 'BC Gov Survey',
         'updatable' => false,

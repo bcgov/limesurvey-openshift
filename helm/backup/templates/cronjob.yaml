@@ -51,9 +51,9 @@ spec:
                 - -c
                 - |
                   source /vault/secrets/backup
-                  restic snapshots > /dev/null 2>&1 || restic init
-                  restic backup /data
-                  restic forget \
+                  restic --no-cache snapshots > /dev/null 2>&1 || restic --no-cache init
+                  restic --no-cache backup /data
+                  restic --no-cache forget \
                     --keep-daily {{ .Values.retention.keepDaily }} \
                     --keep-weekly {{ .Values.retention.keepWeekly }} \
                     --keep-monthly {{ .Values.retention.keepMonthly }} \
