@@ -44,6 +44,22 @@ jobs:
       - name: Verify built commit
         run: test "$(git -C .builder-context rev-parse HEAD)" = "$GITHUB_SHA"
 
+  main-tag:
+    name: Tag main build
+    if: github.ref == 'refs/heads/main'
+    needs: [builds]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Create build tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/git/refs" \
+            -f ref="refs/tags/main-$GITHUB_RUN_NUMBER" \
+            -f sha="$GITHUB_SHA"
+
   prerelease:
     name: Publish pre-release
     if: startsWith(github.ref, 'refs/heads/release/v')

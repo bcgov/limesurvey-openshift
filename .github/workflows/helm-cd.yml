@@ -34,7 +34,7 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "$GITHUB_REF_TYPE" != tag ]]; then
-            echo "Select a release tag in 'Use workflow from'." >&2
+            echo "Select a build tag in 'Use workflow from'." >&2
             exit 1
           fi
           if [[ ! "$TAG" =~ ^(pr-[0-9]+|main-([0-9]+|[0-9a-f]{7})|v[0-9]+\.[0-9]+\.[0-9]+-([0-9]+|[0-9a-f]{7}))$ ]]; then
