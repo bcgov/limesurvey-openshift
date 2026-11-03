@@ -6,7 +6,7 @@ RUN git clone https://github.com/SondagesPro/limesurvey-oauth2.git AuthOAuth2 \
     && composer install \
     && sed -i '/<version>6<\/version>/i <version>7</version>' config.xml
 
-FROM php:8.5-fpm@sha256:843e1eff4294a4f44e3f3817efceae4946d395879bdf00387111b824a5daff1a
+FROM php:8.5-fpm@sha256:c34bcf437ed61bd5e4c1114494eaf1ffd54253bce2b95d263bfa18b350ee8432
 
 ENV ROOT_DIR="/var/www/html"
 ENV RELEASE="7.1.1+260914.zip"
