@@ -34,7 +34,7 @@ jobs:
             tag="v$version-$GITHUB_RUN_NUMBER"
           fi
           echo "value=$tag" >> "$GITHUB_OUTPUT"
-      - uses: bcgov/actions/builder@79aefe3a7abb2d0d00b1b3ea4cfbf12727a10638 # v0.9.0
+      - uses: bcgov/actions/builder@d209bb08aabe15e5e69aca53b24d338a7b2843d5 # v0.12.0
         with:
           package: 'limesurvey-${{ matrix.package }}'
           build_context: ${{ matrix.package }}
