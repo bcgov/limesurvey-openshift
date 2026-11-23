@@ -37,9 +37,8 @@ jobs:
       - uses: bcgov/actions/builder@acc058abf85bb183dad21b839a92a40a4ff47af3 # v0.14.0
         with:
           package: 'limesurvey-${{ matrix.package }}'
-          build_context: ${{ matrix.package }}
-          build_file: '${{ matrix.package }}/Dockerfile'
-          sbom: 'false'
+          context: ${{ matrix.package }}
+          file: '${{ matrix.package }}/Dockerfile'
           tags: ${{ steps.tag.outputs.value }}
       - name: Verify built commit
         run: test "$(git -C .builder-context rev-parse HEAD)" = "$GITHUB_SHA"
