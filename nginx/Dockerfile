@@ -1,4 +1,4 @@
-FROM nginx:1@sha256:abe47724e466aeab9a345d8e46a221c2fa8953c7848bb4a3bd9976a7199f8cf2
+FROM nginx:1@sha256:4c41e2d0a3a55b325ed572cd0200bdb72af1433c3daa2bca6ef8eea68ce504a2
 
 ENV ROOT_DIR="/var/www/html"
 ENV RELEASE="7.0.0-RC1+260430.zip"
