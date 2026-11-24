@@ -1,8 +1,8 @@
-FROM nginx:1@sha256:4c41e2d0a3a55b325ed572cd0200bdb72af1433c3daa2bca6ef8eea68ce504a2
+FROM nginx:1.31.9@sha256:84f7876d21d154885f99554d7ae325d8c2213f9169726ea7ab60642f2573a787
 
 ENV ROOT_DIR="/var/www/html"
-ENV RELEASE="7.0.0-RC1+260430.zip"
-ENV LIMESURVEY_SHA256="765cb6498d96f41a52610920dcec6b389f3f8dcc0290615b8df6520ccf99776b"
+ENV RELEASE="7.11.0+261116.zip"
+ENV LIMESURVEY_SHA256="cf2df8f0269bfdf9aab10ee4da83b7e259ca3dc854da89ba570669f3c0d9985f"
 
 # Install the GNU Compiler Collection
 RUN apt-get update \
@@ -33,7 +33,7 @@ COPY nginx.conf /etc/nginx
 RUN mkdir -p /var/www/html/
 
 RUN echo "LimeSurvey not found, downloading..." && \
-    curl --fail --location --silent --show-error "https://download.limesurvey.org/latest-develop-major/limesurvey${RELEASE}" -o /tmp/limesurvey.zip && \
+    curl --fail --location --silent --show-error "https://download.limesurvey.org/latest-master/limesurvey${RELEASE}" -o /tmp/limesurvey.zip && \
     echo "${LIMESURVEY_SHA256}  /tmp/limesurvey.zip" | sha256sum -c - && \
     unzip -o /tmp/limesurvey.zip -d "$ROOT_DIR" | pv -lf -s "$(unzip -l /tmp/limesurvey.zip | wc -l)" > /dev/null && \
     rm -f /tmp/limesurvey.zip && \
